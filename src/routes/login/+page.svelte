@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
   import Text from '$lib/ui/typography/Text/Text.svelte'
   import LockClosedIcon from '$lib/icons/LockClosedIcon.svelte'
   import MailIcon from '$lib/icons/MailIcon.svelte'
@@ -221,7 +222,8 @@
           </label>
           <button
             type="button"
-            class="text-sm text-primary dark:text-primary-dark hover:text-primary-light-0 dark:hover:text-primary-light-0-dark transition-colors duration-200"
+            onclick={() => goto('/forgot-password')}
+            class="text-sm text-primary cursor-pointer dark:text-primary-dark hover:text-primary-light-0 dark:hover:text-primary-light-0-dark transition-colors duration-200"
           >
             Forgot password?
           </button>
