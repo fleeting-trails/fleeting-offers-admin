@@ -43,14 +43,15 @@
       style={`width: ${navWidth}px`}
     >
       {#if sidenavOpenState === 'collapsed'}
-        <div
-          class="absolute top-[20px] -right-[-5px] h-[10px] w-[10px] cursor-pointer z-2"
-          onclick={handleExpandClick}
+        <button
+          type="button"
+          class="absolute top-[20px] -right-[-5px] h-[10px] w-[10px] cursor-pointer z-2 border-none bg-transparent p-0"
+          on:click={handleExpandClick}
         >
           <IconButton size="sm" colorVariant="primary">
             <ArrowRightIcon scale={0.6} color="white" />
           </IconButton>
-        </div>
+        </button>
       {/if}
       <Sidenav />
     </div>
