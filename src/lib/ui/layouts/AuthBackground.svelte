@@ -11,7 +11,6 @@
     midStop: string
     accentStop: string
     radialOverlay: string
-    conicOverlay: string
     grainSize: string
     grainOpacity: number
     floatingOrbs: GradientLayer[]
@@ -28,8 +27,6 @@
       accentStop: 'to-accent/85 dark:to-accent-dark/85',
       radialOverlay:
         'bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.2),_transparent_65%)]',
-      conicOverlay:
-        'bg-[conic-gradient(at_80%_20%,_rgba(255,255,255,0.14),_transparent_60%)]',
       grainSize: '36px 36px',
       grainOpacity: 0.06,
     }
@@ -39,8 +36,6 @@
       accentStop: 'to-accent/80 dark:to-accent-dark/80',
       radialOverlay:
         'bg-[radial-gradient(circle_at_35%_25%,_rgba(255,255,255,0.22),_transparent_60%)]',
-      conicOverlay:
-        'bg-[conic-gradient(at_75%_30%,_rgba(255,255,255,0.16),_transparent_55%)]',
       grainSize: '34px 34px',
       grainOpacity: 0.07,
       floatingOrbs: [
@@ -125,9 +120,6 @@
     <!-- Radial and Conic Overlays -->
     <div
       class={`absolute inset-0 ${gradientSettings.radialOverlay} opacity-60 blur-3xl`}
-    ></div>
-    <div
-      class={`absolute inset-0 ${gradientSettings.conicOverlay} opacity-50`}
     ></div>
 
     <!-- Glow Beams -->
