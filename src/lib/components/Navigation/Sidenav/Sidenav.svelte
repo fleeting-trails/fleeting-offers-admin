@@ -1,12 +1,17 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
+  import { page } from '$app/stores'
   import CollapseIcon from '$lib/icons/collapseIcon.svelte'
   import ShortcutIcon from '$lib/icons/ShortcutIcon.svelte'
   import { theme } from '../../../../config/theme/theme'
   import SidenavItems from './internal/SidenavItems.svelte'
   import navTree from '../../../../core/nav-tree/nav-tree'
   import HistoryIcon from '$lib/icons/HistoryIcon.svelte'
-  import { initializeNavTreeState, onNavItemSelect } from './Sidenav.service'
+  import {
+    initializeNavTreeState,
+    onNavItemSelect,
+    onNavSubmoduleSelect,
+  } from './Sidenav.service'
   import type { SidenavModule } from './Sidenav.service'
   import { appStore } from '../../../../store/app.store/appStore.svelte'
   import {
@@ -20,10 +25,26 @@
 
   const handleNavItemSelect = (e: CustomEvent<SidenavModule>) => {
     navItems = onNavItemSelect(navItems, e.detail)
+  }
 
-    // Extract page from the ID and redirect
-    const page = e.detail.id.split('.')[1]
-    goto(`/admin/${page}`)
+  const handleSubmoduleSelect = (
+    e: CustomEvent<SidenavModule['submodule'][0]>,
+  ) => {
+    console.log('Submodule selected in parent:', e.detail)
+    navItems = onNavSubmoduleSelect(navItems, e.detail)
+
+    // Navigate to submodule page
+    const submoduleId = e.detail.id
+    const parts = submoduleId.split('.')
+    const moduleId = parts[parts.length - 2] // Second to last part (module)
+    const submodulePage = parts[parts.length - 1] // Last part (submodule)
+
+    const targetUrl = `/admin/${moduleId}?page=${submodulePage}`
+
+    // Only navigate if we're not already on this URL
+    if ($page.url.pathname + $page.url.search !== targetUrl) {
+      goto(targetUrl)
+    }
   }
 
   const handleCollapseSelect = () => {
@@ -111,6 +132,7 @@
           <SidenavItems
             on:menuhover={handleNavItemHover}
             on:menuclick={handleNavItemSelect}
+            on:submoduleselect={handleSubmoduleSelect}
             {module}
             badgeCount={0}
           />
