@@ -1,6 +1,6 @@
 <script>
   import SearchIcon from '$lib/icons/SearchIcon.svelte'
-  import ButtonPrimary from '$lib/ui/Button/ButtonPrimary.svelte'
+  import ButtonPrimary from '$lib/components/Button/ButtonPrimary.svelte'
 
   export let containerStyleClass = ''
 </script>

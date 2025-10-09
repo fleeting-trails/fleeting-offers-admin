@@ -2,7 +2,7 @@
   import SearchInput from '$lib/components/Input/SearchInput.svelte'
   import NotificationIcon from '$lib/icons/NotificationIcon.svelte'
   import ProfileIcon from '$lib/icons/ProfileIcon.svelte'
-  import IconButton from '$lib/ui/Button/IconButton.svelte'
+  import IconButton from '$lib/components/Button/IconButton.svelte'
   import Text from '$lib/ui/typography/Text/Text.svelte'
   import { theme } from '../../../../config/theme/theme'
   import { toggleTheme } from '../../../../core/app/app.service'
@@ -56,10 +56,10 @@
           </svg>
         </label>
       </div>
-      <IconButton size="sm">
+      <IconButton size="sm" colorVariant="pure">
         <NotificationIcon scale={0.8} />
       </IconButton>
-      <IconButton size="sm">
+      <IconButton size="sm" colorVariant="pure">
         <ProfileIcon scale={0.8} />
       </IconButton>
     </div>

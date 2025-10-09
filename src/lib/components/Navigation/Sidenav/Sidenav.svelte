@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
   import CollapseIcon from '$lib/icons/collapseIcon.svelte'
   import ShortcutIcon from '$lib/icons/ShortcutIcon.svelte'
   import { theme } from '../../../../config/theme/theme'
@@ -19,6 +20,10 @@
 
   const handleNavItemSelect = (e: CustomEvent<SidenavModule>) => {
     navItems = onNavItemSelect(navItems, e.detail)
+
+    // Extract page from the ID and redirect
+    const page = e.detail.id.split('.')[1]
+    goto(`/admin/${page}`)
   }
 
   const handleCollapseSelect = () => {

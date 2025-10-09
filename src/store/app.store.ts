@@ -1,8 +1,13 @@
-import { writable } from "svelte/store";
+import { writable } from 'svelte/store'
 
-const appStore = writable({
-	theme: "light",
-	shortcuts: Store.NavItem[],
-	sidenavOpenState: SidenavOpenStates;
-})
+// Define initial state
+const initialState: Store.AppStore = {
+  theme: 'light',
+  shortcuts: [],
+  sidenavOpenState: 'expanded',
+}
 
+// Create the writable store with typed initial state
+const appStore = writable<Store.AppStore>(initialState)
+
+export { appStore }

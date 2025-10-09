@@ -3,7 +3,7 @@
   import Sidenav from '$lib/components/Navigation/Sidenav/Sidenav.svelte'
   import Topnav from '$lib/components/Navigation/Topnav/Topnav.svelte'
   import ArrowRightIcon from '$lib/icons/ArrowRightIcon.svelte'
-  import IconButton from '$lib/ui/Button/IconButton.svelte'
+  import IconButton from '$lib/components/Button/IconButton.svelte'
   import { expandSidenav } from '../../core/app/app.service'
   import { appStore } from '../../store/app.store/appStore.svelte'
   // States
@@ -46,7 +46,7 @@
         <button
           type="button"
           class="absolute top-[20px] -right-[-5px] h-[10px] w-[10px] cursor-pointer z-2 border-none bg-transparent p-0"
-          on:click={handleExpandClick}
+          onclick={handleExpandClick}
         >
           <IconButton size="sm" colorVariant="primary">
             <ArrowRightIcon scale={0.6} color="white" />
