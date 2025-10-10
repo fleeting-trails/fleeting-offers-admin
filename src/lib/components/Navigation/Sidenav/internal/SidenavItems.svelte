@@ -68,13 +68,13 @@
         module.submodule.length}px;"
     >
       {#each module.submodule as item (item.id)}
-        <li
-          class="relative before:absolute before:left-[-12px] before:-top-4 before:w-3 before:h-9 before:border-l before:border-b before:border-gray-300 before:rounded-bl-md text-xs text-text-light"
+        <button
+          type="button"
+          class="cursor-pointer pl-6 w-full text-left group hover:bg-transparent border-none bg-transparent p-0"
+          onclick={() => handleSubmoduleSelect(item)}
         >
-          <button
-            type="button"
-            class="cursor-pointer pl-6 w-full text-left group hover:bg-transparent border-none bg-transparent p-0"
-            onclick={() => handleSubmoduleSelect(item)}
+          <li
+            class="relative before:absolute before:left-[-12px] before:-top-4 before:w-3 before:h-9 before:border-l before:border-b before:border-gray-300 before:rounded-bl-md text-xs text-text-light"
           >
             <Text
               variant="span"
@@ -84,8 +84,8 @@
             >
               {item.label}
             </Text>
-          </button>
-        </li>
+          </li>
+        </button>
       {/each}
     </ul>
   {/if}
