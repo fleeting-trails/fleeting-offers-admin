@@ -2,14 +2,14 @@
   import ButtonGradient from '$lib/components/Button/ButtonGradient.svelte'
   import Modal from '$lib/components/Modal/Modal.svelte'
 
-  let { isOpen = $bindable(false), onSubmit = () => {} } = $props()
+  let { isOpen = $bindable(false), onNext = () => {} } = $props()
 
   let title = $state('')
   let description = $state('')
 
-  const handleSubmit = () => {
+  const handleNext = () => {
     if (title.trim() && description.trim()) {
-      onSubmit({ title, description })
+      onNext({ title, description })
       // Reset form
       title = ''
       description = ''
@@ -29,7 +29,7 @@
     <form
       onsubmit={(e) => {
         e.preventDefault()
-        handleSubmit()
+        handleNext()
       }}
       class="space-y-6"
     >
