@@ -1,7 +1,6 @@
-<script lang="ts">
-  export let color = 'currentColor'
+<script>
+  export let color = '#000000'
   export let scale = 1
-  export let strokeWidth = 1.5
 </script>
 
 <svg
@@ -10,10 +9,13 @@
   width={scale * 24}
   height={scale * 24}
   fill="none"
-  stroke={color}
-  stroke-width={strokeWidth}
-  stroke-linecap="round"
-  stroke-linejoin="round"
 >
-  <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
+  <path
+    {scale}
+    d="M9.00005 6C9.00005 6 15 10.4189 15 12C15 13.5812 9 18 9 18"
+    stroke={color}
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  ></path>
 </svg>
