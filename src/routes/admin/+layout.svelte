@@ -60,7 +60,7 @@
     <div class="flex-1 flex flex-col h-full">
       <!-- Top Navigation -->
       <Topnav />
-      <div class="flex-1">
+      <div class="flex-1 overflow-y-auto">
         {@render children()}
       </div>
     </div>

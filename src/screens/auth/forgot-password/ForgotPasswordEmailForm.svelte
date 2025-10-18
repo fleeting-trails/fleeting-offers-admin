@@ -64,7 +64,7 @@
         <div
           class="group-hover:translate-x-1 transition-transform duration-300"
         >
-          <ArrowRightIcon scale={0.67} strokeWidth={2} />
+          <ArrowRightIcon scale={0.67} />
         </div>
       </span>
     </button>

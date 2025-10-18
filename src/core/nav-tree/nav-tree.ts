@@ -46,21 +46,15 @@ const navTree: Core.NavTree = [
         submodule: [
           {
             id: 'advertise.advertisements.all',
-            label: 'Advertisements',
+            label: 'List',
             description: 'View all advertisements',
-            tags: ['view', 'all'],
+            tags: ['view', 'all', 'list'],
           },
           {
             id: 'advertise.advertisements.create',
             label: 'Create Advertisement',
             description: 'Add a new advertisement',
             tags: ['create'],
-          },
-          {
-            id: 'advertise.advertisements.update',
-            label: 'Update Advertisement',
-            description: 'Edit existing advertisements',
-            tags: ['update'],
           },
         ],
       },

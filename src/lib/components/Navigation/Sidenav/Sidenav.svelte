@@ -35,14 +35,23 @@
 
     // Navigate to submodule page
     const submoduleId = e.detail.id
-    const parts = submoduleId.split('.')
-    const moduleId = parts[parts.length - 2] // Second to last part (module)
-    const submodulePage = parts[parts.length - 1] // Last part (submodule)
+    let targetUrl = ''
 
-    const targetUrl = `/admin/${moduleId}?page=${submodulePage}`
+    // Handle special routing for advertisements
+    if (submoduleId === 'advertise.advertisements.all') {
+      targetUrl = '/admin/advertisements/list'
+    } else if (submoduleId === 'advertise.advertisements.create') {
+      targetUrl = '/admin/advertisements/create'
+    } else {
+      // Default behavior for other routes
+      const parts = submoduleId.split('.')
+      const moduleId = parts[parts.length - 2] // Second to last part (module)
+      const submodulePage = parts[parts.length - 1] // Last part (submodule)
+      targetUrl = `/admin/${moduleId}?page=${submodulePage}`
+    }
 
     // Only navigate if we're not already on this URL
-    if ($page.url.pathname + $page.url.search !== targetUrl) {
+    if ($page.url.pathname !== targetUrl.split('?')[0]) {
       goto(targetUrl)
     }
   }
