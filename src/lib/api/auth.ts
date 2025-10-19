@@ -93,7 +93,27 @@ export async function sendRegistrationOtp(
 }
 
 /**
- * Complete user registration with OTP verification
+ * Set password with OTP verification
+ */
+export async function setPassword(data: {
+  email: string
+  otp: string
+  password: string
+  fullName: string
+}): Promise<ApiSuccessResponse> {
+  return await apiRequest('/dev/auth/set-password', {
+    method: 'POST',
+    body: JSON.stringify({
+      Email: data.email,
+      Otp: data.otp,
+      Password: data.password,
+      FullName: data.fullName,
+    }),
+  })
+}
+
+/**
+ * Complete registration process
  */
 export async function completeRegistration(registrationData: {
   email: string

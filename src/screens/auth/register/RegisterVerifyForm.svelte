@@ -4,6 +4,14 @@
   import UserCircleIcon from '$lib/icons/UserCircleIcon.svelte'
   import LockClosedIcon from '$lib/icons/LockClosedIcon.svelte'
   import ArrowRightIcon from '$lib/icons/ArrowRightIcon.svelte'
+  import {
+    sendRegistrationOtp,
+    setPassword,
+    getApiErrorMessage,
+  } from '$lib/api/auth'
+  import LoadingSpinner from '$lib/components/Loading/LoadingSpinner.svelte'
+  import { toast } from 'svelte-sonner'
+  import { goto } from '$app/navigation'
 
   let {
     email = $bindable(''),
@@ -19,7 +27,7 @@
 
   let formValid = $derived(
     otp.trim() !== '' &&
-      otp.length === 6 &&
+      otp.length === 5 &&
       firstName.trim() !== '' &&
       lastName.trim() !== '' &&
       password.trim() !== '' &&
@@ -28,16 +36,120 @@
       agreeToTerms,
   )
 
-  const handleCreateAccount = () => {
-    if (!formValid) return
-    console.log('Create Account:', {
-      email,
-      otp,
-      firstName,
-      lastName,
-      password,
-      agreeToTerms,
-    })
+  // Resend OTP Timer State
+  let resendCountdown = $state(0)
+  let isResending = $state(false)
+  let resendInterval = $state<ReturnType<typeof setInterval> | null>(null)
+
+  // Form submission state
+  let isSubmitting = $state(false)
+
+  // Start countdown timer
+  const startResendCountdown = () => {
+    resendCountdown = 180 // 3 minutes in seconds
+    resendInterval = setInterval(() => {
+      if (resendCountdown > 0) {
+        resendCountdown--
+      } else {
+        clearInterval(resendInterval!)
+        resendInterval = null
+      }
+    }, 1000)
+  }
+
+  // Format countdown time
+  const formatCountdown = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${minutes}:${secs.toString().padStart(2, '0')}`
+  }
+
+  // Handle resend OTP
+  const handleResendOtp = async () => {
+    if (resendCountdown > 0 || isResending) return
+
+    isResending = true
+
+    try {
+      const result = await sendRegistrationOtp(email)
+
+      if (result.success) {
+        toast.success('Verification code sent successfully!')
+        startResendCountdown()
+      } else {
+        toast.error(result.message || 'Failed to send verification code')
+      }
+    } catch (error: any) {
+      console.error('Resend OTP error:', error)
+
+      if (error?.isApiError) {
+        toast.error(getApiErrorMessage(error))
+      } else {
+        toast.error('Failed to send verification code')
+      }
+    } finally {
+      isResending = false
+    }
+  }
+
+  // Start countdown timer on mount
+  $effect(() => {
+    startResendCountdown()
+
+    // Cleanup interval on unmount
+    return () => {
+      if (resendInterval) {
+        clearInterval(resendInterval)
+      }
+    }
+  })
+
+  const handleCreateAccount = async () => {
+    if (!formValid || isSubmitting) return
+
+    isSubmitting = true
+
+    try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`
+
+      const result = await setPassword({
+        email,
+        otp,
+        password,
+        fullName,
+      })
+
+      if (result.success) {
+        toast.success(
+          'Account created successfully! Please login with your new password.',
+        )
+
+        // Clear form data
+        otp = ''
+        firstName = ''
+        lastName = ''
+        password = ''
+        confirmPassword = ''
+        agreeToTerms = false
+
+        // Navigate to login page
+        setTimeout(() => {
+          goto('/login')
+        }, 1000)
+      } else {
+        toast.error(result.message || 'Failed to create account')
+      }
+    } catch (error: any) {
+      console.error('Account creation error:', error)
+
+      if (error?.isApiError) {
+        toast.error(getApiErrorMessage(error))
+      } else {
+        toast.error('Failed to create account. Please try again.')
+      }
+    } finally {
+      isSubmitting = false
+    }
   }
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -70,10 +182,10 @@
       type="text"
       bind:value={otp}
       onkeydown={handleKeyDown}
-      maxlength="6"
+      maxlength="5"
       required
       class="w-full px-4 py-4 border border-background-toned-2 dark:border-background-toned-2-dark outline-none rounded-lg bg-background-pure/90 dark:bg-background-pure-dark/90 backdrop-blur-sm text-text dark:text-text-dark placeholder-text-light/70 dark:placeholder-text-light-dark/70 focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark focus:bg-background-pure dark:focus:bg-background-pure-dark transition-all duration-300 hover:border-primary/30 dark:hover:border-primary-dark/30 text-center text-xl tracking-widest"
-      placeholder="000000"
+      placeholder="00000"
     />
   </div>
 
@@ -81,9 +193,18 @@
   <div class="text-center">
     <button
       type="button"
-      class="text-sm text-primary dark:text-primary-dark hover:text-primary-light-0 dark:hover:text-primary-light-0-dark transition-colors duration-200"
+      onclick={handleResendOtp}
+      disabled={resendCountdown > 0 || isResending}
+      class="text-sm text-primary dark:text-primary-dark hover:text-primary-light-0 dark:hover:text-primary-light-0-dark transition-colors duration-200 disabled:text-text-light dark:disabled:text-text-light-dark disabled:cursor-not-allowed flex items-center justify-center gap-2"
     >
-      Resend verification code
+      {#if isResending}
+        <LoadingSpinner size="sm" />
+        <span>Sending...</span>
+      {:else if resendCountdown > 0}
+        <span>Resend in {formatCountdown(resendCountdown)}</span>
+      {:else}
+        <span>Resend verification code</span>
+      {/if}
     </button>
   </div>
 
@@ -217,7 +338,7 @@
   <div class="pt-6">
     <button
       type="submit"
-      disabled={!formValid}
+      disabled={!formValid || isSubmitting}
       class="relative w-full cursor-pointer bg-gradient-to-r from-primary dark:from-primary-dark via-primary-light-0 dark:via-primary-light-0-dark to-accent dark:to-accent-dark text-white font-semibold py-4 px-4 rounded-xl hover:from-primary-light-0 dark:hover:from-primary-light-0-dark hover:via-primary-light-1 dark:hover:via-primary-light-1-dark hover:to-accent-deep-0 dark:hover:to-accent-deep-0-dark transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg hover:shadow-2xl group overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:scale-100 disabled:active:scale-100"
     >
       <div
@@ -225,12 +346,17 @@
       ></div>
 
       <span class="relative flex items-center justify-center gap-2">
-        Create Account
-        <div
-          class="group-hover:translate-x-1 transition-transform duration-300"
-        >
-          <ArrowRightIcon scale={0.67} />
-        </div>
+        {#if isSubmitting}
+          <LoadingSpinner size="sm" />
+          <span>Creating Account...</span>
+        {:else}
+          <span>Create Account</span>
+          <div
+            class="group-hover:translate-x-1 transition-transform duration-300"
+          >
+            <ArrowRightIcon scale={0.67} />
+          </div>
+        {/if}
       </span>
     </button>
   </div>
