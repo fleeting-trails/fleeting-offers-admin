@@ -5,11 +5,8 @@
   import MailIcon from '$lib/icons/MailIcon.svelte'
   import ArrowRightIcon from '$lib/icons/ArrowRightIcon.svelte'
   import LoadingSpinner from '$lib/components/Loading/LoadingSpinner.svelte'
-  import {
-    sendRegistrationOtp,
-    getApiErrorMessage,
-    type ApiError,
-  } from '$lib/api/auth'
+  import { sendRegistrationOtp } from '$lib/api/auth'
+  import { getApiErrorMessage, type ApiError } from '$lib/api/api'
 
   let { email = $bindable('') } = $props()
 

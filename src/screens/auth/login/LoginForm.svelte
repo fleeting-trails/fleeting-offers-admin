@@ -4,17 +4,67 @@
   import Text from '$lib/ui/typography/Text/Text.svelte'
   import LockClosedIcon from '$lib/icons/LockClosedIcon.svelte'
   import MailIcon from '$lib/icons/MailIcon.svelte'
+  import { loginUser, storeAuthToken, storeUserData } from '$lib/api/auth'
+  import { getApiErrorMessage } from '$lib/api/api'
+  import LoadingSpinner from '$lib/components/Loading/LoadingSpinner.svelte'
+  import { toast } from 'svelte-sonner'
 
   let email = $state('')
   let password = $state('')
   let rememberMe = $state(false)
+  let isLoading = $state(false)
 
-  const handleLogin = () => {
-    console.log('Login:', { email, password, rememberMe })
+  let formValid = $derived(
+    email.trim() !== '' && password.trim() !== '' && email.includes('@'),
+  )
+
+  const handleLogin = async () => {
+    if (!formValid || isLoading) return
+
+    isLoading = true
+
+    try {
+      const response = await loginUser(email.trim(), password)
+
+      if (response.success && response.data) {
+        const { user, token } = response.data
+
+        // Store auth data
+        storeAuthToken(token)
+        storeUserData(user)
+
+        toast.success(`Welcome back, ${user.fullName}!`)
+
+        // Clear form
+        email = ''
+        password = ''
+        rememberMe = false
+
+        // Navigate to admin dashboard
+        setTimeout(() => {
+          goto('/admin')
+        }, 1000)
+      } else {
+        toast.error(response.message || 'Login failed')
+      }
+    } catch (error: any) {
+      console.error('Login error:', error)
+
+      if (error?.isApiError) {
+        const errorMessage = getApiErrorMessage(error)
+        toast.error('Login Failed', {
+          description: errorMessage,
+        })
+      } else {
+        toast.error('Login failed. Please try again.')
+      }
+    } finally {
+      isLoading = false
+    }
   }
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && formValid && !isLoading) {
       handleLogin()
     }
   }
@@ -93,27 +143,33 @@
   <div class="pt-6">
     <button
       type="submit"
-      class="relative w-full cursor-pointer bg-gradient-to-r from-primary dark:from-primary-dark via-primary-light-0 dark:via-primary-light-0-dark to-accent dark:to-accent-dark text-white font-semibold py-4 px-4 rounded-xl hover:from-primary-light-0 dark:hover:from-primary-light-0-dark hover:via-primary-light-1 dark:hover:via-primary-light-1-dark hover:to-accent-deep-0 dark:hover:to-accent-deep-0-dark transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg hover:shadow-2xl group overflow-hidden"
+      disabled={!formValid || isLoading}
+      class="relative w-full cursor-pointer bg-gradient-to-r from-primary dark:from-primary-dark via-primary-light-0 dark:via-primary-light-0-dark to-accent dark:to-accent-dark text-white font-semibold py-4 px-4 rounded-xl hover:from-primary-light-0 dark:hover:from-primary-light-0-dark hover:via-primary-light-1 dark:hover:via-primary-light-1-dark hover:to-accent-deep-0 dark:hover:to-accent-deep-0-dark transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg hover:shadow-2xl group overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:scale-100 disabled:active:scale-100"
     >
       <div
         class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out"
       ></div>
 
       <span class="relative flex items-center justify-center gap-2">
-        Sign In
-        <svg
-          class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M13 7l5 5m0 0l-5 5m5-5H6"
-          ></path>
-        </svg>
+        {#if isLoading}
+          <LoadingSpinner size="sm" variant="white" />
+          <span>Signing In...</span>
+        {:else}
+          <span>Sign In</span>
+          <svg
+            class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 7l5 5m0 0l-5 5m5-5H6"
+            ></path>
+          </svg>
+        {/if}
       </span>
     </button>
   </div>

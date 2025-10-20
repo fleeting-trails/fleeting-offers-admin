@@ -4,11 +4,8 @@
   import UserCircleIcon from '$lib/icons/UserCircleIcon.svelte'
   import LockClosedIcon from '$lib/icons/LockClosedIcon.svelte'
   import ArrowRightIcon from '$lib/icons/ArrowRightIcon.svelte'
-  import {
-    sendRegistrationOtp,
-    setPassword,
-    getApiErrorMessage,
-  } from '$lib/api/auth'
+  import { sendRegistrationOtp, setPassword } from '$lib/api/auth'
+  import { getApiErrorMessage } from '$lib/api/api'
   import LoadingSpinner from '$lib/components/Loading/LoadingSpinner.svelte'
   import { toast } from 'svelte-sonner'
   import { goto } from '$app/navigation'

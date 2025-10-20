@@ -1,88 +1,55 @@
+import { apiRequest, type ApiSuccessResponse } from './api'
 import { browser } from '$app/environment'
 
-// API Response Types
-interface ApiSuccessResponse {
-  success: boolean
-  message: string
-  data: any
+// Device detection utility
+function getDeviceInfo(): string {
+  if (!browser) return 'ServerSide'
+
+  const userAgent = navigator.userAgent
+  const platform = navigator.platform || 'Unknown'
+
+  return `${platform} | ${userAgent}`
 }
 
-interface ApiErrorResponse {
-  type?: string
-  title: string
-  status: number
-  errors: Record<string, string[]>
-  traceId?: string
-  message?: string
-}
-
-export interface ApiError {
-  status: number
-  data: ApiErrorResponse
-  isApiError: boolean
-}
-
-// Get base URL from environment or default
-function getBaseUrl(): string {
+// Token management utilities
+export function storeAuthToken(token: string): void {
   if (browser) {
-    return 'http://localhost:5001/api'
+    localStorage.setItem('auth_token', token)
   }
-  // Server-side can use environment variable
-  return process.env.BASE_URL || 'http://localhost:5001/api'
 }
 
-// Base API function with error handling
-async function apiRequest(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<any> {
-  try {
-    const baseUrl = getBaseUrl()
-    const url = `${baseUrl}${endpoint}`
-
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-      },
-      ...options,
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw {
-        status: response.status,
-        data,
-        isApiError: true,
-      } as ApiError
-    }
-
-    return data
-  } catch (error: any) {
-    if (error && typeof error === 'object' && error.isApiError) {
-      throw error
-    }
-
-    // Network or other errors
-    throw {
-      status: 0,
-      data: {
-        title: 'Network Error',
-        message: 'Unable to connect to server. Please check your connection.',
-        status: 0,
-        errors: {},
-      },
-      isApiError: true,
-    } as ApiError
+export function getAuthToken(): string | null {
+  if (browser) {
+    return localStorage.getItem('auth_token')
   }
+  return null
+}
+
+export function removeAuthToken(): void {
+  if (browser) {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user_data')
+  }
+}
+
+// User data management utilities
+export function storeUserData(user: any): void {
+  if (browser) {
+    localStorage.setItem('user_data', JSON.stringify(user))
+  }
+}
+
+export function getUserData(): any | null {
+  if (browser) {
+    const userData = localStorage.getItem('user_data')
+    return userData ? JSON.parse(userData) : null
+  }
+  return null
 }
 
 // Authentication API Functions
 
-/**
- * Send OTP to email for registration
- */
+// Send OTP to email for registration
 export async function sendRegistrationOtp(
   email: string,
 ): Promise<ApiSuccessResponse> {
@@ -92,9 +59,7 @@ export async function sendRegistrationOtp(
   })
 }
 
-/**
- * Set password with OTP verification
- */
+// Set password with OTP verification
 export async function setPassword(data: {
   email: string
   otp: string
@@ -103,59 +68,43 @@ export async function setPassword(data: {
 }): Promise<ApiSuccessResponse> {
   return await apiRequest('/dev/auth/set-password', {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization:
+        'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJBYnRhaGlUYWp3YXIiLCJpYXQiOjE3NDMwMzU5NzYsImV4cCI6MTc3NDU3MTk3NiwiYXVkIjoiRmxlZXRpbmdPZmZlcnNEZXZlbG9wZXJzIiwic3ViIjoi',
+    },
     body: JSON.stringify({
       Email: data.email,
       Otp: data.otp,
       Password: data.password,
-      FullName: data.fullName,
+      // FullName: data.fullName,
     }),
   })
 }
 
-/**
- * Complete registration process
- */
-export async function completeRegistration(registrationData: {
-  email: string
-  otp: string
-  firstName: string
-  lastName: string
-  password: string
-}): Promise<ApiSuccessResponse> {
-  return await apiRequest('/admin/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(registrationData),
-  })
-}
-
-/**
- * Login user
- */
+// Login user
 export async function loginUser(
   email: string,
   password: string,
 ): Promise<ApiSuccessResponse> {
+  const device = getDeviceInfo()
+
   return await apiRequest('/admin/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email,
+      password,
+      device,
+    }),
   })
 }
 
-/**
- * Get error message from API error response
- */
-export function getApiErrorMessage(error: ApiError): string {
-  if (!error || !error.data) return 'An unexpected error occurred'
-
-  const { errors, message, title } = error.data
-
-  if (errors && typeof errors === 'object') {
-    // Get first error message from validation errors
-    const errorValues = Object.values(errors)
-    if (errorValues.length > 0 && Array.isArray(errorValues[0])) {
-      return errorValues[0][0]
-    }
-  }
-
-  return message || title || 'An unexpected error occurred'
+// Logout user
+export async function logoutUser(token: string): Promise<ApiSuccessResponse> {
+  return await apiRequest('/admin/auth/logout', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
 }

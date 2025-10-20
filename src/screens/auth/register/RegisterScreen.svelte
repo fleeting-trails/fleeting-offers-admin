@@ -1,12 +1,15 @@
 <!-- Register Screen -->
 <script lang="ts">
   import { page } from '$app/stores'
+  import { goto } from '$app/navigation'
+  import { browser } from '$app/environment'
   import Text from '$lib/ui/typography/Text/Text.svelte'
   import AuthBackground from '$lib/ui/layouts/AuthBackground.svelte'
   import AuthCard from '$lib/ui/layouts/AuthCard.svelte'
   import AuthHeader from '$lib/ui/layouts/AuthHeader.svelte'
   import RegisterEmailForm from './RegisterEmailForm.svelte'
   import RegisterVerifyForm from './RegisterVerifyForm.svelte'
+  import { toast } from 'svelte-sonner'
 
   let email = $state('')
   let otp = $state('')
@@ -16,7 +19,46 @@
   let confirmPassword = $state('')
   let agreeToTerms = $state(false)
 
-  let currentStep = $derived($page.url.searchParams.get('step') || 'email')
+  let rawStep = $derived($page.url.searchParams.get('step'))
+  let currentStep = $state('email')
+  let isInitialized = $state(false)
+
+  // Handle URL and state synchronization
+  $effect(() => {
+    if (!browser) return
+
+    const urlStep = rawStep || null
+
+    // If no step parameter, redirect to ?step=email
+    if (!urlStep) {
+      goto('/register?step=email', { replaceState: true })
+      currentStep = 'email'
+      isInitialized = true
+      return
+    }
+
+    // If on verify step but no email, redirect to email step
+    if (urlStep === 'verify' && (!email || email.trim() === '')) {
+      if (isInitialized) {
+        toast.error('Email is required. Please start from the beginning.')
+      }
+      goto('/register?step=email', { replaceState: true })
+      currentStep = 'email'
+      isInitialized = true
+      return
+    }
+
+    // Update current step if valid
+    if (urlStep === 'email' || urlStep === 'verify') {
+      currentStep = urlStep
+      isInitialized = true
+    } else {
+      // Invalid step, redirect to email
+      goto('/register?step=email', { replaceState: true })
+      currentStep = 'email'
+      isInitialized = true
+    }
+  })
 
   const getStepTitle = (step: string): string => {
     switch (step) {
@@ -48,18 +90,20 @@
       description={getStepDescription(currentStep)}
     />
 
-    {#if currentStep === 'email'}
-      <RegisterEmailForm bind:email />
-    {:else if currentStep === 'verify'}
-      <RegisterVerifyForm
-        bind:email
-        bind:otp
-        bind:firstName
-        bind:lastName
-        bind:password
-        bind:confirmPassword
-        bind:agreeToTerms
-      />
+    {#if isInitialized}
+      {#if currentStep === 'email'}
+        <RegisterEmailForm bind:email />
+      {:else if currentStep === 'verify'}
+        <RegisterVerifyForm
+          bind:email
+          bind:otp
+          bind:firstName
+          bind:lastName
+          bind:password
+          bind:confirmPassword
+          bind:agreeToTerms
+        />
+      {/if}
     {/if}
 
     <!-- Login Link -->
