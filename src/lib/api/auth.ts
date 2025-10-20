@@ -6,9 +6,9 @@ function getDeviceInfo(): string {
   if (!browser) return 'ServerSide'
 
   const userAgent = navigator.userAgent
-  const platform = navigator.platform || 'Unknown'
+  const platform = navigator.platform
 
-  return `${platform} | ${userAgent}`
+  return `${platform}_${userAgent}`.replace(/\s+/g, '_').trim()
 }
 
 // Token management utilities
@@ -29,6 +29,7 @@ export function removeAuthToken(): void {
   if (browser) {
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user_data')
+    localStorage.removeItem('is_loggedin')
   }
 }
 
@@ -36,6 +37,7 @@ export function removeAuthToken(): void {
 export function storeUserData(user: any): void {
   if (browser) {
     localStorage.setItem('user_data', JSON.stringify(user))
+    localStorage.setItem('is_loggedin', 'true')
   }
 }
 
@@ -45,6 +47,22 @@ export function getUserData(): any | null {
     return userData ? JSON.parse(userData) : null
   }
   return null
+}
+
+// Authentication state utilities
+export function isLoggedIn(): boolean {
+  if (!browser) return false
+
+  const token = getAuthToken()
+  const loginStatus = localStorage.getItem('is_loggedin')
+
+  return !!(token && loginStatus === 'true')
+}
+
+export function setLoggedOut(): void {
+  if (browser) {
+    localStorage.removeItem('is_loggedin')
+  }
 }
 
 // Authentication API Functions
@@ -107,4 +125,19 @@ export async function logoutUser(token: string): Promise<ApiSuccessResponse> {
       Authorization: `Bearer ${token}`,
     },
   })
+}
+
+// Complete logout - clears local state and calls API
+export async function performLogout(): Promise<void> {
+  try {
+    const token = getAuthToken()
+    if (token) {
+      await logoutUser(token)
+    }
+  } catch (error) {
+    console.error('Logout API error:', error)
+  } finally {
+    // Always clear local storage regardless of API success
+    removeAuthToken()
+  }
 }
