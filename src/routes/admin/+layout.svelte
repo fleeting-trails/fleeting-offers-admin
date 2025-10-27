@@ -61,7 +61,7 @@
     >
       <!-- Sidenavigation -->
       <div
-        class="relative h-full transition-all ease-in-out duration-300"
+        class="relative h-full transition-all ease-in-out duration-300 flex-shrink-0"
         style={`width: ${navWidth}px`}
       >
         {#if sidenavOpenState === 'collapsed'}
@@ -79,11 +79,13 @@
       </div>
 
       <!-- Right Content -->
-      <div class="flex-1 flex flex-col h-full">
+      <div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <!-- Top Navigation -->
         <Topnav />
-        <div class="flex-1 overflow-y-auto">
-          {@render children()}
+        <div class="flex-1 overflow-y-auto p-4 md:p-6">
+          <div class="w-full max-w-full">
+            {@render children()}
+          </div>
         </div>
       </div>
     </div>

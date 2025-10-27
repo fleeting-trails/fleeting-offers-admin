@@ -1,25 +1,44 @@
 <script lang="ts">
   import ButtonGradient from '$lib/components/Button/ButtonGradient.svelte'
   import Modal from '$lib/components/Modal/Modal.svelte'
+  import type { AdvertisementFormData } from '$lib/types/advertisement'
 
-  let { isOpen = $bindable(false), onNext = () => {} } = $props()
+  let {
+    isOpen = $bindable(false),
+    onNext = (data: Partial<AdvertisementFormData>) => {},
+  } = $props()
 
   let title = $state('')
+  let subtitle = $state('')
   let description = $state('')
+  let startDate = $state('')
+  let expirationDate = $state('')
 
   const handleNext = () => {
-    if (title.trim() && description.trim()) {
-      onNext({ title, description })
+    if (title.trim() && subtitle.trim() && description.trim()) {
+      onNext({
+        title,
+        subtitle,
+        description,
+        startDate: startDate || undefined,
+        expirationDate: expirationDate || undefined,
+      })
       // Reset form
       title = ''
+      subtitle = ''
       description = ''
+      startDate = ''
+      expirationDate = ''
       isOpen = false
     }
   }
 
   const handleCancel = () => {
     title = ''
+    subtitle = ''
     description = ''
+    startDate = ''
+    expirationDate = ''
     isOpen = false
   }
 </script>
@@ -33,7 +52,7 @@
       }}
       class="space-y-6"
     >
-      <!-- Title and Description Fields in single box style -->
+      <!-- Title, Subtitle and Description Fields -->
       <div class="relative">
         <div class="relative group">
           <input
@@ -47,6 +66,17 @@
         </div>
 
         <div class="relative group">
+          <input
+            id="subtitle"
+            type="text"
+            bind:value={subtitle}
+            required
+            class="w-full px-4 py-4 border-x border-background-toned-2 dark:border-background-toned-2-dark outline-none bg-background-pure/90 dark:bg-background-pure-dark/90 backdrop-blur-sm text-text dark:text-text-dark placeholder-text-light/70 dark:placeholder-text-light-dark/70 focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark focus:bg-background-pure dark:focus:bg-background-pure-dark transition-all duration-300 hover:border-primary/30 dark:hover:border-primary-dark/30"
+            placeholder="Enter advertisement subtitle"
+          />
+        </div>
+
+        <div class="relative group">
           <textarea
             id="description"
             bind:value={description}
@@ -56,10 +86,39 @@
             placeholder="Enter advertisement description"
           ></textarea>
         </div>
+      </div>
 
-        <div
-          class="absolute top-1/2 left-4 right-4 h-px bg-background-toned-3/40 dark:bg-background-toned-3-dark/40 transform -translate-y-1/2"
-        ></div>
+      <!-- Date Fields -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="relative group">
+          <label
+            for="startDate"
+            class="block text-sm font-medium text-text dark:text-text-dark mb-2"
+          >
+            Start Date (Optional)
+          </label>
+          <input
+            id="startDate"
+            type="datetime-local"
+            bind:value={startDate}
+            class="w-full px-4 py-3 border border-background-toned-2 dark:border-background-toned-2-dark outline-none rounded-lg bg-background-pure/90 dark:bg-background-pure-dark/90 backdrop-blur-sm text-text dark:text-text-dark focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark focus:bg-background-pure dark:focus:bg-background-pure-dark transition-all duration-300 hover:border-primary/30 dark:hover:border-primary-dark/30"
+          />
+        </div>
+
+        <div class="relative group">
+          <label
+            for="expirationDate"
+            class="block text-sm font-medium text-text dark:text-text-dark mb-2"
+          >
+            Expiration Date (Optional)
+          </label>
+          <input
+            id="expirationDate"
+            type="datetime-local"
+            bind:value={expirationDate}
+            class="w-full px-4 py-3 border border-background-toned-2 dark:border-background-toned-2-dark outline-none rounded-lg bg-background-pure/90 dark:bg-background-pure-dark/90 backdrop-blur-sm text-text dark:text-text-dark focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark focus:bg-background-pure dark:focus:bg-background-pure-dark transition-all duration-300 hover:border-primary/30 dark:hover:border-primary-dark/30"
+          />
+        </div>
       </div>
 
       <!-- Actions -->

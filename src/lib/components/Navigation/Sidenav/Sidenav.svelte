@@ -37,18 +37,18 @@
     const submoduleId = e.detail.id
     let targetUrl = ''
 
-    // Handle special routing for advertisements
-    if (submoduleId === 'advertise.advertisements.all') {
-      targetUrl = '/admin/advertisements/list'
-    } else if (submoduleId === 'advertise.advertisements.create') {
-      targetUrl = '/admin/advertisements/create'
-    } else {
-      // Default behavior for other routes
-      const parts = submoduleId.split('.')
-      const moduleId = parts[parts.length - 2] // Second to last part (module)
-      const submodulePage = parts[parts.length - 1] // Last part (submodule)
-      targetUrl = `/admin/${moduleId}?page=${submodulePage}`
+    // Convert nav tree IDs to path-based routes
+    const parts = submoduleId.split('.')
+    const moduleId = parts[parts.length - 2] // Second to last part (module)
+    const submodulePage = parts[parts.length - 1] // Last part (submodule)
+
+    // Map submodule pages to appropriate route names
+    let routePage = submodulePage
+    if (submodulePage === 'all') {
+      routePage = 'list'
     }
+
+    targetUrl = `/admin/${moduleId}/${routePage}`
 
     // Only navigate if we're not already on this URL
     if ($page.url.pathname !== targetUrl.split('?')[0]) {

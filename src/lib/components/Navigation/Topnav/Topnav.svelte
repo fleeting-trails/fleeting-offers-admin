@@ -6,7 +6,13 @@
   import Text from '$lib/ui/typography/Text/Text.svelte'
   import { theme } from '../../../../config/theme/theme'
   import { toggleTheme } from '../../../../core/app/app.service'
+  import { getUserData } from '$lib/api/auth'
+
   const handleToggleTheme = () => toggleTheme()
+
+  // Get user data
+  const userData = getUserData()
+  const userName = userData?.fullName || 'User'
 </script>
 
 <div
@@ -19,7 +25,7 @@
       <Text variant="span" class="text-sm text-text-light font-light"
         >Welcome</Text
       >
-      <Text variant="span">Abtahi Tajwar</Text>
+      <Text variant="span">{userName}</Text>
     </div>
 
     <div class="flex-1">

@@ -66,16 +66,16 @@ const navTree: Core.NavTree = [
         tags: ['category', 'advertise-categories'],
         submodule: [
           {
+            id: 'advertise.categories.list',
+            label: 'Category List',
+            description: 'Category List',
+            tags: ['list'],
+          },
+          {
             id: 'advertise.categories.create',
             label: 'Create Category',
             description: 'Add a new category',
             tags: ['create'],
-          },
-          {
-            id: 'advertise.categories.update',
-            label: 'Update Category',
-            description: 'Edit existing categories',
-            tags: ['update'],
           },
         ],
       },
@@ -87,16 +87,16 @@ const navTree: Core.NavTree = [
         tags: ['industry'],
         submodule: [
           {
+            id: 'advertise.industries.list',
+            label: 'List Industries',
+            description: 'View all industry classifications',
+            tags: ['list'],
+          },
+          {
             id: 'advertise.industries.create',
             label: 'Create Industry',
             description: 'Add a new industry classification',
             tags: ['create'],
-          },
-          {
-            id: 'advertise.industries.update',
-            label: 'Update Industry',
-            description: 'Edit existing industries',
-            tags: ['update'],
           },
         ],
       },
