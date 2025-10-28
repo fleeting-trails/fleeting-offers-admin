@@ -188,7 +188,7 @@
             {/each}
             {#if actions.length > 0}
               <th
-                class="text-left py-4 px-6 text-sm font-medium text-text-light dark:text-text-light-dark uppercase tracking-wider"
+                class="text-right py-4 px-6 text-sm font-medium text-text-light dark:text-text-light-dark uppercase tracking-wider"
               >
                 Actions
               </th>
@@ -225,8 +225,8 @@
                   </td>
                 {/each}
                 {#if actions.length > 0}
-                  <td class="py-4 px-6">
-                    <div class="flex items-center space-x-2">
+                  <td class="py-4 px-6 text-right">
+                    <div class="flex items-center justify-end space-x-2">
                       {#each actions as action}
                         {#if !action.condition || action.condition(row)}
                           <button

@@ -1,2 +1,5 @@
-<h1>Categories List</h1>
-<p>Categories management coming soon...</p>
+<script>
+  import CategoryListScreen from '../../../../screens/categories/list/CategoryListScreen.svelte'
+</script>
+
+<CategoryListScreen />
