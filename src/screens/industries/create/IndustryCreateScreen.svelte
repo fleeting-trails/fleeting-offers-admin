@@ -52,8 +52,6 @@
 
       // Handle existing image if present
       if (industry.imageId) {
-        // You can implement image loading here if needed
-        // For now, we'll just note that there's an existing image
         console.log('Industry has existing image:', industry.imageId)
       }
     } catch (error) {

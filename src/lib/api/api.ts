@@ -25,7 +25,6 @@ export interface ApiError {
 
 // Get base URL from environment or default
 export function getBaseUrl(): string {
-  // Try to get from public environment variable first
   const envUrl = env.PUBLIC_BASE_URL || 'http://localhost:5001/api'
   return envUrl
 }

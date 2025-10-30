@@ -8,9 +8,14 @@
   import CategoryTable from '$lib/ui/Category/CategoryTable.svelte'
   import EditCategoryModal from '$lib/ui/Category/EditCategoryModal.svelte'
   import ViewCategoryModal from '$lib/ui/Category/ViewCategoryModal.svelte'
+  import {
+    fetchCategories,
+    deleteCategory,
+    updateCategory,
+    fetchCategoryById,
+  } from '$lib/api/category'
   import type {
     CategoryDisplay,
-    CategoryFormData,
     CategoryListResponse,
     Category,
   } from '$lib/types/category'
@@ -32,59 +37,25 @@
   let pageSize = $state(10)
   let totalPages = $state(0)
 
+  // Transform category data for display
+  const transformCategory = (category: Category): CategoryDisplay => ({
+    ...category,
+    hasImage: !!category.imageId,
+    formattedDate: new Date(category.createdAt).toLocaleDateString(),
+  })
+
   // Load categories
   const loadCategories = async () => {
     loading = true
     try {
-      const mockResponse: CategoryListResponse = {
-        success: true,
-        message: 'Ok',
-        data: {
-          items: [
-            {
-              id: '35f27c0d-86d5-4e09-b87d-bea6667b01b4',
-              name: 'Smart Watch',
-              slug: 'smart-watch',
-              imageId: null,
-              createdAt: '2025-10-25T15:09:42.082279Z',
-            },
-            {
-              id: 'a1b2c3d4-e5f6-4789-abc1-23456789def0',
-              name: 'Fashion & Apparel',
-              slug: 'fashion-apparel',
-              imageId: 'img_123456',
-              createdAt: '2025-10-20T10:30:00.000Z',
-            },
-            {
-              id: 'b2c3d4e5-f6a7-5890-bcd2-3456789ef012',
-              name: 'Electronics',
-              slug: 'electronics',
-              imageId: null,
-              createdAt: '2025-10-18T14:45:30.000Z',
-            },
-            {
-              id: 'c3d4e5f6-a7b8-6901-cde3-456789f01234',
-              name: 'Home & Garden',
-              slug: 'home-garden',
-              imageId: 'img_789012',
-              createdAt: '2025-10-15T09:15:20.000Z',
-            },
-          ],
-          totalItems: 4,
-          page: 1,
-          pageSize: 10,
-          totalPages: 1,
-        },
-      }
+      const response = await fetchCategories(currentPage, pageSize)
 
-      if (mockResponse.success) {
-        categories = mockResponse.data.items.map(transformCategory)
-        totalItems = mockResponse.data.totalItems
-        currentPage = mockResponse.data.page
-        pageSize = mockResponse.data.pageSize
-        totalPages = mockResponse.data.totalPages
+      if (response.success) {
+        categories = response.data.items.map(transformCategory)
+        totalItems = response.data.totalItems
+        totalPages = response.data.totalPages
       } else {
-        toast.error('Failed to load categories')
+        throw new Error(response.message || 'Failed to load categories')
       }
     } catch (error) {
       console.error('Error loading categories:', error)
@@ -94,24 +65,21 @@
     }
   }
 
-  // Transform category data for display
-  const transformCategory = (category: Category): CategoryDisplay => ({
-    ...category,
-    hasImage: !!category.imageId,
-    formattedDate: new Date(category.createdAt).toLocaleDateString(),
-  })
-
   // Initialize data
   onMount(() => {
     loadCategories()
   })
 
   // Action handlers
-  const handleView = (id: string) => {
-    const category = categories.find((c) => c.id === id)
-    if (!category) return
-    viewingCategory = category
-    isViewModalOpen = true
+  const handleView = async (id: string) => {
+    try {
+      const category = await fetchCategoryById(id)
+      viewingCategory = transformCategory(category)
+      isViewModalOpen = true
+    } catch (error) {
+      console.error('Error loading category:', error)
+      toast.error('Failed to load category details')
+    }
   }
 
   const handleEdit = (id: string) => {
@@ -126,19 +94,20 @@
     isDeleteModalOpen = true
   }
 
-  const handleEditSubmit = async (data: CategoryFormData) => {
+  const handleEditSubmit = async (data: { name: string; imageId?: string }) => {
     if (!editingCategory) return
 
     submitLoading = true
     try {
-      // Update local data
+      await updateCategory(editingCategory.id, {
+        name: data.name,
+        ...(data.imageId && { imageId: data.imageId }),
+      })
+
+      // Update local data with the new name
       categories = categories.map((category) =>
         category.id === editingCategory!.id
-          ? {
-              ...category,
-              name: data.name,
-              slug: data.slug,
-            }
+          ? { ...category, name: data.name }
           : category,
       )
 
@@ -147,38 +116,39 @@
       toast.success('Category updated successfully')
     } catch (error) {
       console.error('Error updating category:', error)
-      toast.error('Failed to update category')
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to update category'
+      toast.error(errorMessage)
     } finally {
       submitLoading = false
     }
   }
 
-  const confirmDelete = async () => {
+  const handleDeleteConfirm = async () => {
     if (!deletingCategoryId) return
 
-    submitLoading = true
     try {
-      categories = categories.filter(
-        (category) => category.id !== deletingCategoryId,
-      )
-      totalItems = Math.max(0, totalItems - 1)
+      await deleteCategory(deletingCategoryId)
 
-      isDeleteModalOpen = false
-      deletingCategoryId = null
+      // Remove from local data
+      categories = categories.filter((c) => c.id !== deletingCategoryId)
+      totalItems--
+
       toast.success('Category deleted successfully')
     } catch (error) {
       console.error('Error deleting category:', error)
-      toast.error('Failed to delete category')
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to delete category'
+      toast.error(errorMessage)
     } finally {
-      submitLoading = false
+      deletingCategoryId = null
+      isDeleteModalOpen = false
     }
   }
 
   const cancelDelete = () => {
-    if (!submitLoading) {
-      deletingCategoryId = null
-      isDeleteModalOpen = false
-    }
+    deletingCategoryId = null
+    isDeleteModalOpen = false
   }
 
   const handleCreateNew = () => {
@@ -249,7 +219,7 @@
   bind:isOpen={isDeleteModalOpen}
   title="Delete Category"
   message="Are you sure you want to delete this category? This action cannot be undone."
-  onConfirm={confirmDelete}
+  onConfirm={handleDeleteConfirm}
   onCancel={cancelDelete}
   loading={submitLoading}
 />

@@ -4,7 +4,6 @@
   import { toast } from 'svelte-sonner'
   import ButtonGradient from '$lib/components/Button/ButtonGradient.svelte'
   import DeleteConfirmationModal from '$lib/components/Modal/DeleteConfirmationModal.svelte'
-  import LoadingSpinner from '$lib/components/Loading/LoadingSpinner.svelte'
   import IndustryTable from '$lib/ui/Industry/IndustryTable.svelte'
   import EditIndustryModal from '$lib/ui/Industry/EditIndustryModal.svelte'
   import ViewIndustryModal from '$lib/ui/Industry/ViewIndustryModal.svelte'
@@ -14,11 +13,7 @@
     updateIndustry,
     fetchIndustryById,
   } from '$lib/api/industry'
-  import type {
-    IndustryDisplay,
-    IndustryListResponse,
-    Industry,
-  } from '$lib/types/industry'
+  import type { IndustryDisplay, Industry } from '$lib/types/industry'
 
   // State
   let isEditModalOpen = $state(false)

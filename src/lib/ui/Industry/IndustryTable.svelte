@@ -36,8 +36,6 @@
 
   // Use server-side pagination data
   const displayedIndustries = $derived(() => {
-    // For server-side pagination, we display all industries from the API
-    // Client-side filtering can be added here if needed
     if (!searchTerm) return industries
 
     return industries.filter(
