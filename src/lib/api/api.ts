@@ -1,4 +1,5 @@
 import { browser } from '$app/environment'
+import { env } from '$env/dynamic/public'
 
 // API Response Types
 export interface ApiSuccessResponse {
@@ -24,11 +25,9 @@ export interface ApiError {
 
 // Get base URL from environment or default
 export function getBaseUrl(): string {
-  if (browser) {
-    return 'http://localhost:5001/api'
-  }
-  // Server-side can use environment variable
-  return process.env.BASE_URL || 'http://localhost:5001/api'
+  // Try to get from public environment variable first
+  const envUrl = env.PUBLIC_BASE_URL || 'http://localhost:5001/api'
+  return envUrl
 }
 // Base API function with error handling
 export async function apiRequest(
@@ -39,9 +38,15 @@ export async function apiRequest(
     const baseUrl = getBaseUrl()
     const url = `${baseUrl}${endpoint}`
 
+    // Don't set Content-Type for FormData (browser will set it automatically)
+    const headers: Record<string, string> = {}
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json'
+    }
+
     const response = await fetch(url, {
       headers: {
-        'Content-Type': 'application/json',
+        ...headers,
         ...(options.headers || {}),
       },
       ...options,

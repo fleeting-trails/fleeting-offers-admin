@@ -1,2 +1,5 @@
-<h1>Industries List</h1>
-<p>Industries management coming soon...</p>
+<script>
+  import IndustryListScreen from '../../../../screens/industries/list/IndustryListScreen.svelte'
+</script>
+
+<IndustryListScreen />

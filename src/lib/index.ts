@@ -8,6 +8,9 @@ export { default as Modal } from './components/Modal/Modal.svelte'
 export { default as AdvertisementTable } from './ui/Advertisement/AdvertisementTable.svelte'
 export { default as Text } from './ui/typography/Text/Text.svelte'
 
+// API
+export * from './api/industry'
+
 // Types
 export type {
   TableColumn,
