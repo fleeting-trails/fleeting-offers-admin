@@ -1,9 +1,12 @@
-import { writable } from "svelte/store";
+import { writable } from 'svelte/store'
 
 const initialState: Store.AppStore = {
   theme: 'light',
   shortcuts: [],
-  sidenavOpenState: 'expanded'
+  sidenavOpenState: 'expanded',
+  auth: {
+    isLoggedIn: false,
+    user: null,
+  },
 }
-export const appStore = $state(initialState);
-
+export const appStore = $state(initialState)

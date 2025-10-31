@@ -5,6 +5,10 @@ const initialState: Store.AppStore = {
   theme: 'light',
   shortcuts: [],
   sidenavOpenState: 'expanded',
+  auth: {
+    isLoggedIn: false,
+    user: null,
+  },
 }
 
 // Create the writable store with typed initial state

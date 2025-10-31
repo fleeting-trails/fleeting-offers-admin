@@ -1,10 +1,18 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
   import { goto } from '$app/navigation'
+  import { toast } from 'svelte-sonner'
   import ButtonGradient from '$lib/components/Button/ButtonGradient.svelte'
+  import LoadingSpinner from '$lib/components/Loading/LoadingSpinner.svelte'
   import DeleteConfirmationModal from '$lib/components/Modal/DeleteConfirmationModal.svelte'
   import AdvertisementTable from '$lib/ui/Advertisement/AdvertisementTable.svelte'
   import EditAdvertisementModal from '$lib/ui/Advertisement/EditAdvertisementModal.svelte'
   import ViewAdvertisementModal from '$lib/ui/Advertisement/ViewAdvertisementModal.svelte'
+  import {
+    fetchAdvertisements,
+    deleteAdvertisement,
+    type AdvertisementApiItem,
+  } from '$lib/api/advertisement'
   import type { AdvertisementDisplay } from '$lib/types/advertisement'
 
   // State
@@ -15,128 +23,73 @@
   let viewingAdvertisement = $state<AdvertisementDisplay | null>(null)
   let deletingAdvertisementId = $state<string | null>(null)
   let loading = $state(false)
+  let deleteLoading = $state(false)
 
-  // Advertisement data
-  let advertisements = $state<AdvertisementDisplay[]>([
-    {
-      id: '1',
-      title: 'Summer Sale Campaign',
-      subtitle: 'Biggest Sale of the Year',
-      description:
-        'Get 50% off on all summer items including fashion, accessories, and more',
-      startDate: '2024-06-01T00:00:00Z',
-      expirationDate: '2024-08-31T23:59:59Z',
-      categoryName: 'Fashion',
-      subCategoryName: 'Retail Clothing',
-      dealTypeName: 'Percentage Discount',
-      coverImageUrl: '/images/summer-sale-cover.jpg',
-      thumbnailImageUrl: '/images/summer-sale-thumb.jpg',
-      tagCount: 3,
-      locationCount: 5,
-      ownerCount: 1,
-      status: 'published',
-      createdAt: '2024-01-15T10:30:00Z',
-      updatedAt: '2024-01-15T10:30:00Z',
-    },
-    {
-      id: '2',
-      title: 'Tech Gadgets Promotion',
-      subtitle: 'Latest Technology at Best Prices',
-      description:
-        'Latest smartphones, laptops, and accessories at discounted prices',
-      startDate: '2024-01-01T00:00:00Z',
-      expirationDate: '2024-12-31T23:59:59Z',
-      categoryName: 'Electronics',
-      subCategoryName: 'Consumer Electronics',
-      dealTypeName: 'Flash Sale',
-      coverImageUrl: '/images/tech-promo-cover.jpg',
-      thumbnailImageUrl: '/images/tech-promo-thumb.jpg',
-      tagCount: 4,
-      locationCount: 10,
-      ownerCount: 2,
-      status: 'published',
-      createdAt: '2024-01-10T14:20:00Z',
-      updatedAt: '2024-01-10T14:20:00Z',
-    },
-    {
-      id: '3',
-      title: 'Home Decor Collection',
-      subtitle: 'Transform Your Living Space',
-      description:
-        'Transform your space with our premium home decor collection',
-      startDate: undefined,
-      expirationDate: '2024-06-30T23:59:59Z',
-      categoryName: 'Home & Garden',
-      subCategoryName: 'Interior Design',
-      dealTypeName: 'Clearance Sale',
-      coverImageUrl: '/images/home-decor-cover.jpg',
-      thumbnailImageUrl: '/images/home-decor-thumb.jpg',
-      tagCount: 5,
-      locationCount: 3,
-      ownerCount: 1,
-      status: 'draft',
-      createdAt: '2024-01-08T09:15:00Z',
-      updatedAt: '2024-01-08T09:15:00Z',
-    },
-    {
-      id: '4',
-      title: 'Fitness Equipment Sale',
-      subtitle: 'Professional Grade Equipment',
-      description:
-        'Professional grade fitness equipment for home workouts and gyms',
-      startDate: '2024-03-01T00:00:00Z',
-      expirationDate: '2024-09-15T23:59:59Z',
-      categoryName: 'Sports & Recreation',
-      subCategoryName: 'Fitness Equipment',
-      dealTypeName: 'Seasonal Offer',
-      coverImageUrl: '/images/fitness-cover.jpg',
-      thumbnailImageUrl: '/images/fitness-thumb.jpg',
-      tagCount: 3,
-      locationCount: 8,
-      ownerCount: 1,
-      status: 'published',
-      createdAt: '2024-01-20T16:45:00Z',
-      updatedAt: '2024-01-20T16:45:00Z',
-    },
-    {
-      id: '5',
-      title: 'Gourmet Food Festival',
-      subtitle: 'World Cuisine Experience',
-      description: 'Exclusive gourmet food items from around the world',
-      startDate: '2024-07-01T00:00:00Z',
-      expirationDate: '2024-07-20T23:59:59Z',
-      categoryName: 'Food & Beverage',
-      subCategoryName: 'Gourmet Foods',
-      dealTypeName: 'Limited Time Offer',
-      coverImageUrl: '/images/food-festival-cover.jpg',
-      thumbnailImageUrl: '/images/food-festival-thumb.jpg',
-      tagCount: 6,
-      locationCount: 2,
-      ownerCount: 3,
-      status: 'published',
-      createdAt: '2024-01-12T11:30:00Z',
-      updatedAt: '2024-01-12T11:30:00Z',
-    },
-    {
-      id: '6',
-      title: 'Beauty & Skincare Bundle',
-      subtitle: 'Complete Beauty Routine',
-      description: 'Complete skincare routine with premium beauty products',
-      startDate: undefined,
-      expirationDate: '2024-10-30T23:59:59Z',
-      categoryName: 'Health & Beauty',
-      subCategoryName: 'Skincare',
-      dealTypeName: 'Bundle Deal',
-      coverImageUrl: '/images/beauty-cover.jpg',
-      thumbnailImageUrl: '/images/beauty-thumb.jpg',
-      tagCount: 4,
-      locationCount: 6,
-      ownerCount: 1,
-      status: 'draft',
-      createdAt: '2024-01-18T08:45:00Z',
-      updatedAt: '2024-01-18T08:45:00Z',
-    },
-  ])
+  // Data state
+  let advertisements = $state<AdvertisementDisplay[]>([])
+  let totalItems = $state(0)
+  let currentPage = $state(1)
+  let pageSize = $state(10)
+  let totalPages = $state(0)
+
+  // Load advertisements on mount
+  onMount(() => {
+    loadAdvertisements()
+  })
+
+  // Transform API item to display format
+  const transformToDisplay = (
+    item: AdvertisementApiItem,
+  ): AdvertisementDisplay => {
+    return {
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle,
+      description: item.description || '',
+      startDate: item.startDate || undefined,
+      expirationDate: item.expirationDate || undefined,
+      categoryName: 'N/A', // Will be populated when we have category lookup
+      subCategoryName: 'N/A', // Will be populated when we have subcategory lookup
+      dealTypeName: 'N/A', // Will be populated when we have deal type lookup
+      coverImageUrl: item.coverImageId
+        ? `/api/files/${item.coverImageId}`
+        : undefined,
+      thumbnailImageUrl: item.thumbnailImageId
+        ? `/api/files/${item.thumbnailImageId}`
+        : undefined,
+      tagCount: 0, // Will be populated when we have tag count from API
+      locationCount: 0, // Will be populated when we have location count from API
+      ownerCount: 1, // Default to 1 for now
+      status: 'published', // Will be determined based on dates and API response
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    }
+  }
+
+  // Load advertisements from API
+  const loadAdvertisements = async () => {
+    loading = true
+    try {
+      const response = await fetchAdvertisements(currentPage, pageSize)
+
+      advertisements = response.data.items.map(transformToDisplay)
+      totalItems = response.data.totalItems
+      totalPages = response.data.totalPages
+    } catch (error) {
+      console.error('Error loading advertisements:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to load advertisements'
+      toast.error(errorMessage)
+      advertisements = []
+    } finally {
+      loading = false
+    }
+  }
+
+  // Refresh function
+  const handleRefresh = () => {
+    loadAdvertisements()
+  }
 
   // Actions
   const handleCreateClick = () => {
@@ -150,7 +103,6 @@
     isViewModalOpen = true
   }
 
-  // Action handlers
   const handleEdit = (id: string) => {
     const ad = advertisements.find((a) => a.id === id)
     if (!ad) return
@@ -168,11 +120,25 @@
     isDeleteModalOpen = true
   }
 
-  const confirmDelete = () => {
-    if (deletingAdvertisementId) {
-      advertisements = advertisements.filter(
-        (ad) => ad.id !== deletingAdvertisementId,
-      )
+  const confirmDelete = async () => {
+    if (!deletingAdvertisementId) return
+
+    deleteLoading = true
+    try {
+      await deleteAdvertisement(deletingAdvertisementId)
+      toast.success('Advertisement deleted successfully')
+
+      // Reload the list
+      await loadAdvertisements()
+    } catch (error) {
+      console.error('Error deleting advertisement:', error)
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to delete advertisement'
+      toast.error(errorMessage)
+    } finally {
+      deleteLoading = false
       deletingAdvertisementId = null
       isDeleteModalOpen = false
     }
@@ -183,23 +149,36 @@
     isDeleteModalOpen = false
   }
 
-  const handleEditSubmit = (data: any) => {
+  const handleEditSubmit = async (data: any) => {
     if (!editingAdvertisement) return
 
-    advertisements = advertisements.map((ad) =>
-      ad.id === editingAdvertisement!.id
-        ? {
-            ...ad,
-            title: data.title,
-            subtitle: data.subtitle,
-            description: data.description,
-            startDate: data.startDate,
-            expirationDate: data.expirationDate,
-            updatedAt: new Date().toISOString(),
-          }
-        : ad,
-    )
-    editingAdvertisement = null
+    try {
+      // For now, we'll update the local state
+      // Later this should call the API update endpoint
+      advertisements = advertisements.map((ad) =>
+        ad.id === editingAdvertisement!.id
+          ? {
+              ...ad,
+              title: data.title,
+              subtitle: data.subtitle,
+              description: data.description,
+              startDate: data.startDate,
+              expirationDate: data.expirationDate,
+              updatedAt: new Date().toISOString(),
+            }
+          : ad,
+      )
+
+      toast.success('Advertisement updated successfully')
+      editingAdvertisement = null
+    } catch (error) {
+      console.error('Error updating advertisement:', error)
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to update advertisement'
+      toast.error(errorMessage)
+    }
   }
 </script>
 
@@ -216,19 +195,29 @@
         Manage your advertisement campaigns
       </p>
     </div>
-    <ButtonGradient onclick={handleCreateClick} size="md">
+    <ButtonGradient onclick={handleCreateClick} size="md" disabled={loading}>
       Create Advertisement
     </ButtonGradient>
   </div>
 
-  <!-- Advertisement table -->
-  <AdvertisementTable
-    {advertisements}
-    {loading}
-    onEdit={handleEdit}
-    onView={handleView}
-    onDelete={handleDelete}
-  />
+  <!-- Loading state -->
+  {#if loading}
+    <div class="flex justify-center items-center py-12">
+      <LoadingSpinner />
+      <span class="ml-2 text-text-secondary dark:text-text-secondary-dark">
+        Loading advertisements...
+      </span>
+    </div>
+  {:else}
+    <!-- Advertisement table -->
+    <AdvertisementTable
+      {advertisements}
+      loading={false}
+      onEdit={handleEdit}
+      onView={handleView}
+      onDelete={handleDelete}
+    />
+  {/if}
 </div>
 
 <!-- Modals -->
@@ -249,5 +238,5 @@
   message="Are you sure you want to delete this advertisement? This action cannot be undone."
   onConfirm={confirmDelete}
   onCancel={cancelDelete}
-  {loading}
+  loading={deleteLoading}
 />

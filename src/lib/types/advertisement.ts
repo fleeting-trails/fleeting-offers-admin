@@ -109,6 +109,35 @@ export interface AdvertisementFormData {
   owners: Omit<AdvertiseOwner, 'id' | 'advertisementId'>[]
 }
 
+// API Response Types
+export interface AdvertisementListResponse {
+  success: boolean
+  message: string
+  data: {
+    items: AdvertisementApiItem[]
+    totalItems: number
+    page: number
+    pageSize: number
+    totalPages: number
+  }
+}
+
+export interface AdvertisementApiItem {
+  id: string
+  title: string
+  subtitle: string
+  description: string | null
+  startDate: string | null
+  expirationDate: string | null
+  coverImageId: string | null
+  thumbnailImageId: string | null
+  categoryId: string | null
+  subCategoryId: string | null
+  createdById: string
+  createdAt: string
+  updatedAt: string
+}
+
 // Display Types for Table
 export interface AdvertisementDisplay {
   id: string

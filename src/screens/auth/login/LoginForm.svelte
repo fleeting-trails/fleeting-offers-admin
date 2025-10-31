@@ -4,7 +4,7 @@
   import Text from '$lib/ui/typography/Text/Text.svelte'
   import LockClosedIcon from '$lib/icons/LockClosedIcon.svelte'
   import MailIcon from '$lib/icons/MailIcon.svelte'
-  import { loginUser, storeAuthToken, storeUserData } from '$lib/api/auth'
+  import { loginUser, storeAuthToken, setAuthState } from '$lib/api/auth'
   import { getApiErrorMessage } from '$lib/api/api'
   import LoadingSpinner from '$lib/components/Loading/LoadingSpinner.svelte'
   import { toast } from 'svelte-sonner'
@@ -29,9 +29,9 @@
       if (response.success && response.data) {
         const { user, token } = response.data
 
-        // Store auth data
+        // Store auth token in localStorage and user data in store
         storeAuthToken(token)
-        storeUserData(user)
+        setAuthState(user)
 
         toast.success(`Welcome back, ${user.fullName}!`)
 

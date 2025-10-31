@@ -1,16 +1,21 @@
 namespace Store {
   type AppStore = {
-    theme: Utils.ThemeColorSchemes;
+    theme: Utils.ThemeColorSchemes
     shortcuts: NavItem[]
-    sidenavOpenState: SidenavOpenStates;
+    sidenavOpenState: SidenavOpenStates
+    auth: AuthState
   }
   type NavItem = {
-    id: string,
-    url: string,
-    label: string,
-    icon: Utils.AppComponent,
-    description?: string,
+    id: string
+    url: string
+    label: string
+    icon: Utils.AppComponent
+    description?: string
     tags?: [string]
   }
-  type SidenavOpenStates = "expanded" | "collapsed" | "hidden"
+  type SidenavOpenStates = 'expanded' | 'collapsed' | 'hidden'
+  type AuthState = {
+    isLoggedIn: boolean
+    user: any | null
+  }
 }

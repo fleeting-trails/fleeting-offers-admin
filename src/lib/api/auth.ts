@@ -1,5 +1,6 @@
 import { apiRequest, type ApiSuccessResponse } from './api'
 import { browser } from '$app/environment'
+import { appStore } from '../../store/app.store/appStore.svelte'
 
 // Device detection utility
 function getDeviceInfo(): string {
@@ -11,7 +12,7 @@ function getDeviceInfo(): string {
   return `${platform}_${userAgent}`.replace(/\s+/g, '_').trim()
 }
 
-// Token management utilities
+// Token management utilities (only token in localStorage)
 export function storeAuthToken(token: string): void {
   if (browser) {
     localStorage.setItem('auth_token', token)
@@ -28,40 +29,53 @@ export function getAuthToken(): string | null {
 export function removeAuthToken(): void {
   if (browser) {
     localStorage.removeItem('auth_token')
-    localStorage.removeItem('user_data')
-    localStorage.removeItem('is_loggedin')
   }
 }
 
-// User data management utilities
-export function storeUserData(user: any): void {
-  if (browser) {
-    localStorage.setItem('user_data', JSON.stringify(user))
-    localStorage.setItem('is_loggedin', 'true')
+// Store management utilities (user data and auth state in store)
+export function setAuthState(user: any): void {
+  appStore.auth = {
+    isLoggedIn: true,
+    user: user,
+  }
+}
+
+export function clearAuthState(): void {
+  appStore.auth = {
+    isLoggedIn: false,
+    user: null,
   }
 }
 
 export function getUserData(): any | null {
-  if (browser) {
-    const userData = localStorage.getItem('user_data')
-    return userData ? JSON.parse(userData) : null
-  }
-  return null
+  return appStore.auth.user
 }
 
-// Authentication state utilities
 export function isLoggedIn(): boolean {
   if (!browser) return false
 
   const token = getAuthToken()
-  const loginStatus = localStorage.getItem('is_loggedin')
+  const storeLoggedIn = appStore.auth.isLoggedIn
 
-  return !!(token && loginStatus === 'true')
+  return !!(token && storeLoggedIn)
 }
 
-export function setLoggedOut(): void {
-  if (browser) {
-    localStorage.removeItem('is_loggedin')
+// Initialize auth state on app load
+// This should be called when the app starts to restore session if token exists
+export function initializeAuthState(): void {
+  if (!browser) return
+
+  const token = getAuthToken()
+
+  // If there's a token but no user in store, the session is incomplete
+  // We will fetch user data from an API endpoint later
+  // For now, if there's a token but no user data, we consider the session invalid
+  if (token && !appStore.auth.isLoggedIn) {
+    // Option 1: Clear the orphaned token
+    removeAuthToken()
+
+    // Option 2: We will fetch user data from an API endpoint
+    // fetchCurrentUser(token).then(user => setAuthState(user))
   }
 }
 
@@ -137,7 +151,8 @@ export async function performLogout(): Promise<void> {
   } catch (error) {
     console.error('Logout API error:', error)
   } finally {
-    // Always clear local storage regardless of API success
+    // Always clear auth state regardless of API success
     removeAuthToken()
+    clearAuthState()
   }
 }
