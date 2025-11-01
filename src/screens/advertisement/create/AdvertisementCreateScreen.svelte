@@ -93,6 +93,28 @@
     }
   }
 
+  // Format date from API to datetime-local input format
+  const formatDateFromAPI = (dateString: string): string => {
+    if (!dateString) return ''
+
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return ''
+
+      // Format to YYYY-MM-DDTHH:mm (datetime-local format)
+      const year = date.getFullYear()
+      const month = (date.getMonth() + 1).toString().padStart(2, '0')
+      const day = date.getDate().toString().padStart(2, '0')
+      const hours = date.getHours().toString().padStart(2, '0')
+      const minutes = date.getMinutes().toString().padStart(2, '0')
+
+      return `${year}-${month}-${day}T${hours}:${minutes}`
+    } catch (error) {
+      console.error('Error formatting date from API:', error)
+      return ''
+    }
+  }
+
   // Load existing advertisement data for editing
   const loadAdvertisementData = async (id: string) => {
     loadingData = true
@@ -101,8 +123,10 @@
       formData.title = advertisement.title
       formData.subtitle = advertisement.subtitle
       formData.description = advertisement.description || ''
-      formData.startDate = advertisement.startDate || ''
-      formData.expirationDate = advertisement.expirationDate || ''
+      formData.startDate = formatDateFromAPI(advertisement.startDate || '')
+      formData.expirationDate = formatDateFromAPI(
+        advertisement.expirationDate || '',
+      )
       formData.categoryId = advertisement.categoryId || ''
       formData.subCategoryId = advertisement.subCategoryId || ''
 
@@ -118,6 +142,29 @@
       goto('/admin/advertisements/list')
     } finally {
       loadingData = false
+    }
+  }
+
+  // Format date to required format: 0001-01-01T00:00:00
+  const formatDateForAPI = (dateString: string): string | undefined => {
+    if (!dateString) return undefined
+
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return undefined
+
+      // Format to YYYY-MM-DDTHH:mm:ss
+      const year = date.getFullYear().toString().padStart(4, '0')
+      const month = (date.getMonth() + 1).toString().padStart(2, '0')
+      const day = date.getDate().toString().padStart(2, '0')
+      const hours = date.getHours().toString().padStart(2, '0')
+      const minutes = date.getMinutes().toString().padStart(2, '0')
+      const seconds = date.getSeconds().toString().padStart(2, '0')
+
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
+    } catch (error) {
+      console.error('Error formatting date:', error)
+      return undefined
     }
   }
 
@@ -163,6 +210,20 @@
     try {
       let payload: CreateAdvertisementData | CreateAdvertisementByAdminData
 
+      // Format dates for API
+      const formattedStartDate = formatDateForAPI(formData.startDate)
+      const formattedExpirationDate = formatDateForAPI(formData.expirationDate)
+
+      // Log formatted dates for debugging
+      console.log('Original dates:', {
+        startDate: formData.startDate,
+        expirationDate: formData.expirationDate,
+      })
+      console.log('Formatted dates:', {
+        startDate: formattedStartDate,
+        expirationDate: formattedExpirationDate,
+      })
+
       if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
         // Admin payload structure
         payload = {
@@ -170,8 +231,8 @@
             title: formData.title.trim(),
             subtitle: formData.subtitle.trim() || undefined,
             description: formData.description.trim() || undefined,
-            startDate: formData.startDate || undefined,
-            expirationDate: formData.expirationDate || undefined,
+            startDate: formattedStartDate,
+            expirationDate: formattedExpirationDate,
             coverImageId: uploadedCoverImageId || undefined,
             thumbnailImageId: uploadedThumbnailImageId || undefined,
             categoryId: formData.categoryId || undefined,
@@ -190,8 +251,8 @@
           title: formData.title.trim(),
           subtitle: formData.subtitle.trim() || undefined,
           description: formData.description.trim() || undefined,
-          startDate: formData.startDate || undefined,
-          expirationDate: formData.expirationDate || undefined,
+          startDate: formattedStartDate,
+          expirationDate: formattedExpirationDate,
           coverImageId: uploadedCoverImageId || undefined,
           thumbnailImageId: uploadedThumbnailImageId || undefined,
           categoryId: formData.categoryId || undefined,

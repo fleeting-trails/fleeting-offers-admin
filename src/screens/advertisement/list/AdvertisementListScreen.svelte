@@ -48,6 +48,10 @@
       description: item.description || '',
       startDate: item.startDate || undefined,
       expirationDate: item.expirationDate || undefined,
+      categoryId: item.categoryId || undefined,
+      subCategoryId: item.subCategoryId || undefined,
+      coverImageId: item.coverImageId || undefined,
+      thumbnailImageId: item.thumbnailImageId || undefined,
       categoryName: 'N/A', // Will be populated when we have category lookup
       subCategoryName: 'N/A', // Will be populated when we have subcategory lookup
       dealTypeName: 'N/A', // Will be populated when we have deal type lookup
@@ -149,36 +153,10 @@
     isDeleteModalOpen = false
   }
 
-  const handleEditSubmit = async (data: any) => {
-    if (!editingAdvertisement) return
-
-    try {
-      // For now, we'll update the local state
-      // Later this should call the API update endpoint
-      advertisements = advertisements.map((ad) =>
-        ad.id === editingAdvertisement!.id
-          ? {
-              ...ad,
-              title: data.title,
-              subtitle: data.subtitle,
-              description: data.description,
-              startDate: data.startDate,
-              expirationDate: data.expirationDate,
-              updatedAt: new Date().toISOString(),
-            }
-          : ad,
-      )
-
-      toast.success('Advertisement updated successfully')
-      editingAdvertisement = null
-    } catch (error) {
-      console.error('Error updating advertisement:', error)
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to update advertisement'
-      toast.error(errorMessage)
-    }
+  const handleEditSubmit = async () => {
+    // Reload the advertisements list after successful update
+    await loadAdvertisements()
+    editingAdvertisement = null
   }
 </script>
 
@@ -228,7 +206,7 @@
 
 <EditAdvertisementModal
   bind:isOpen={isEditModalOpen}
-  onSubmit={handleEditSubmit}
+  onSuccess={handleEditSubmit}
   advertisement={editingAdvertisement}
 />
 

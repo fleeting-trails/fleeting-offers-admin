@@ -146,6 +146,10 @@ export interface AdvertisementDisplay {
   description: string
   startDate?: string
   expirationDate?: string
+  categoryId?: string
+  subCategoryId?: string
+  coverImageId?: string
+  thumbnailImageId?: string
   categoryName: string
   subCategoryName: string
   dealTypeName: string

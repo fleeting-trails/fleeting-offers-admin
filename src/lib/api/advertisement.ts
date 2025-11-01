@@ -58,7 +58,7 @@ const ADVERTISEMENT_ENDPOINTS = {
   LIST_OWN: '/admin/advertise/list/own',
   CREATE: '/admin/advertise/create',
   CREATE_BY_ADMIN: '/admin/advertise/create-by-admin',
-  UPDATE: (id: string) => `/admin/advertise/update/${id}`,
+  UPDATE: '/admin/advertise/update',
   DELETE: (id: string) => `/admin/advertise/delete/${id}`,
   GET: (id: string) => `/admin/advertise/${id}`,
 }
@@ -179,23 +179,26 @@ export async function createAdvertisement(
 // Update advertisement
 export async function updateAdvertisement(
   id: string,
-  data: any,
-): Promise<AdvertisementApiItem> {
+  data: CreateAdvertisementData | CreateAdvertisementByAdminData,
+): Promise<{ success: boolean; message: string; data: string }> {
   try {
-    const response = await apiRequest(ADVERTISEMENT_ENDPOINTS.UPDATE(id), {
+    const response = await apiRequest(ADVERTISEMENT_ENDPOINTS.UPDATE, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         ...getAuthHeaders(),
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        id,
+        ...data,
+      }),
     })
 
     if (!response.success) {
       throw new Error(response.message || 'Failed to update advertisement')
     }
 
-    return response.data
+    return response
   } catch (error) {
     const message = getApiErrorMessage(error as ApiError)
     throw new Error(message)
