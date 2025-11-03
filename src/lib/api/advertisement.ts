@@ -52,6 +52,44 @@ export interface CreateAdvertisementByAdminData {
   }[]
 }
 
+// Detailed Advertisement Types
+export interface AdvertisementOwner {
+  id: string
+  advertiseId: string
+  advertise: any | null
+  userId: string
+  user: any | null
+  ownershipType: 'OWNER'
+}
+
+export interface AdvertisementDetailData {
+  locations: any[]
+  relatedAdvertises: any[]
+  additionalImages: any[]
+  tags: any[]
+  owners: AdvertisementOwner[]
+  analytics: any | null
+  id: string
+  title: string
+  subtitle: string
+  description: string | null
+  startDate: string | null
+  expirationDate: string | null
+  coverImageId: string | null
+  thumbnailImageId: string | null
+  categoryId: string | null
+  subCategoryId: string | null
+  createdById: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AdvertisementDetailResponse {
+  success: boolean
+  message: string
+  data: AdvertisementDetailData
+}
+
 // Advertisement API endpoints
 const ADVERTISEMENT_ENDPOINTS = {
   LIST_ALL: '/admin/advertise/list',
@@ -60,7 +98,9 @@ const ADVERTISEMENT_ENDPOINTS = {
   CREATE_BY_ADMIN: '/admin/advertise/create-by-admin',
   UPDATE: '/admin/advertise/update',
   DELETE: (id: string) => `/admin/advertise/delete/${id}`,
+  DELETE_BY_ADMIN: (id: string) => `/admin/advertise/delete-by-admin/${id}`,
   GET: (id: string) => `/admin/advertise/${id}`,
+  GET_OWN: (id: string) => `/admin/advertise/get/own/${id}`,
 }
 
 // Get authenticated headers
@@ -99,8 +139,29 @@ function getCreateEndpoint(): string {
     return ADVERTISEMENT_ENDPOINTS.CREATE_BY_ADMIN
   }
 
-  // Default to regular create for ORGANIZATION and other roles
   return ADVERTISEMENT_ENDPOINTS.CREATE
+}
+
+// Get appropriate delete endpoint based on user role
+function getDeleteEndpoint(id: string): string {
+  const role = getUserRole()
+
+  if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+    return ADVERTISEMENT_ENDPOINTS.DELETE_BY_ADMIN(id)
+  }
+
+  return ADVERTISEMENT_ENDPOINTS.DELETE(id)
+}
+
+// Get appropriate detail endpoint based on user role
+function getDetailEndpoint(id: string): string {
+  const role = getUserRole()
+
+  if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+    return ADVERTISEMENT_ENDPOINTS.GET(id)
+  }
+
+  return ADVERTISEMENT_ENDPOINTS.GET_OWN(id)
 }
 
 // List advertisements with role-based endpoint
@@ -141,6 +202,30 @@ export async function fetchAdvertisementById(
 
     if (!response.success) {
       throw new Error(response.message || 'Failed to fetch advertisement')
+    }
+
+    return response.data
+  } catch (error) {
+    const message = getApiErrorMessage(error as ApiError)
+    throw new Error(message)
+  }
+}
+
+// Get detailed advertisement by ID with role-based endpoint
+export async function fetchAdvertisementDetails(
+  id: string,
+): Promise<AdvertisementDetailData> {
+  try {
+    const endpoint = getDetailEndpoint(id)
+    const response = await apiRequest(endpoint, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    })
+
+    if (!response.success) {
+      throw new Error(
+        response.message || 'Failed to fetch advertisement details',
+      )
     }
 
     return response.data
@@ -208,7 +293,8 @@ export async function updateAdvertisement(
 // Delete advertisement
 export async function deleteAdvertisement(id: string): Promise<void> {
   try {
-    const response = await apiRequest(ADVERTISEMENT_ENDPOINTS.DELETE(id), {
+    const endpoint = getDeleteEndpoint(id)
+    const response = await apiRequest(endpoint, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     })
