@@ -99,7 +99,7 @@ const ADVERTISEMENT_ENDPOINTS = {
   UPDATE: '/admin/advertise/update',
   DELETE: (id: string) => `/admin/advertise/delete/${id}`,
   DELETE_BY_ADMIN: (id: string) => `/admin/advertise/delete-by-admin/${id}`,
-  GET: (id: string) => `/admin/advertise/${id}`,
+  GET: (id: string) => `/admin/advertise/get/${id}`,
   GET_OWN: (id: string) => `/admin/advertise/get/own/${id}`,
 }
 
