@@ -2,6 +2,30 @@ import { apiRequest, type ApiSuccessResponse } from './api'
 import { browser } from '$app/environment'
 import { appStore } from '../../store/app.store/appStore.svelte'
 
+// Token validation response types
+interface TokenValidationData {
+  isValid: boolean
+  token: string
+  userId: string
+  role: string
+  device: string
+  user: {
+    id: string
+    fullName: string
+    username: string
+    email: string
+    role: string
+    restrictedUserSubRoleId: string | null
+    lastLoggedIn: string | null
+    createdAt: string
+    isPasswordSet: boolean
+  }
+}
+
+interface TokenValidationResponse extends ApiSuccessResponse {
+  data: TokenValidationData
+}
+
 // Device detection utility
 function getDeviceInfo(): string {
   if (!browser) return 'ServerSide'
@@ -60,22 +84,56 @@ export function isLoggedIn(): boolean {
   return !!(token && storeLoggedIn)
 }
 
+// Validate token and get user data
+export async function validateToken(): Promise<TokenValidationResponse> {
+  const token = getAuthToken()
+  if (!token) {
+    throw new Error('No token found')
+  }
+
+  return await apiRequest('/admin/auth/validate-token', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
+
 // Initialize auth state on app load
-// This should be called when the app starts to restore session if token exists
-export function initializeAuthState(): void {
+export async function initializeAuthState(): Promise<void> {
   if (!browser) return
 
   const token = getAuthToken()
 
-  // If there's a token but no user in store, the session is incomplete
-  // We will fetch user data from an API endpoint later
-  // For now, if there's a token but no user data, we consider the session invalid
-  if (token && !appStore.auth.isLoggedIn) {
-    // Option 1: Clear the orphaned token
-    removeAuthToken()
+  // No token - clear auth state and return
+  if (!token) {
+    clearAuthState()
+    return
+  }
 
-    // Option 2: We will fetch user data from an API endpoint
-    // fetchCurrentUser(token).then(user => setAuthState(user))
+  // Token exists but user not in store - validate token
+  if (!appStore.auth.isLoggedIn) {
+    try {
+      const response = await validateToken()
+
+      if (response.success && response.data?.isValid && response.data?.user) {
+        // Token is valid - set user data
+        setAuthState(response.data.user)
+      } else {
+        // Token validation failed - clear auth
+        removeAuthToken()
+        clearAuthState()
+      }
+    } catch (error: any) {
+      console.error('Token validation failed:', error)
+
+      // Clear auth state for any validation error
+      removeAuthToken()
+      clearAuthState()
+
+      // Re-throw error to let caller handle toast notifications
+      throw error
+    }
   }
 }
 
