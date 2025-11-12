@@ -23,7 +23,6 @@
       await initializeAuthState()
     } catch (error: any) {
       console.error('Auth initialization failed:', error)
-      // Don't show toast for normal "no token" cases, only for actual errors
       if (error?.message !== 'No token found') {
         toast.error('Session validation failed. Please log in again.')
       }

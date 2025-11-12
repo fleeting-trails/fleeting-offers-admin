@@ -32,6 +32,35 @@ const navTree: Core.NavTree = [
     ],
   },
   {
+    id: 'account',
+    label: 'Account',
+    description: 'Manage user accounts and settings.',
+    tags: ['account', 'users', 'settings'],
+    module: [
+      {
+        id: 'account.users',
+        label: 'Users',
+        icon: DashboardIcon,
+        description: 'Manage user accounts',
+        tags: ['users', 'accounts'],
+        submodule: [
+          {
+            id: 'account.users.list',
+            label: 'User List',
+            description: 'View all user accounts',
+            tags: ['list', 'view'],
+          },
+          {
+            id: 'account.users.create',
+            label: 'Create User',
+            description: 'Add a new user account',
+            tags: ['create'],
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: 'advertise',
     label: 'Advertise',
     description: 'Manage advertisements and related content.',
@@ -46,7 +75,7 @@ const navTree: Core.NavTree = [
         submodule: [
           {
             id: 'advertise.advertisements.all',
-            label: 'List',
+            label: 'Advertisement List',
             description: 'View all advertisements',
             tags: ['view', 'all', 'list'],
           },
@@ -88,7 +117,7 @@ const navTree: Core.NavTree = [
         submodule: [
           {
             id: 'advertise.industries.list',
-            label: 'List Industries',
+            label: 'Industry List',
             description: 'View all industry classifications',
             tags: ['list'],
           },
