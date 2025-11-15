@@ -29,9 +29,9 @@
       if (response.success && response.data) {
         const { user, token } = response.data
 
-        // Store auth token in localStorage and user data in store
+        // Store auth token in localStorage and user data + permissions in store
         storeAuthToken(token)
-        setAuthState(user)
+        setAuthState(user, token, response.data.permissions ?? null)
 
         toast.success(`Welcome back, ${user.fullName}!`)
 

@@ -17,5 +17,7 @@ namespace Store {
   type AuthState = {
     isLoggedIn: boolean
     user: any | null
+    token?: string | null
+    permissions?: Record<string, any> | null
   }
 }

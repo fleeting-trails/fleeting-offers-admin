@@ -8,6 +8,8 @@ const initialState: Store.AppStore = {
   auth: {
     isLoggedIn: false,
     user: null,
+    token: null,
+    permissions: null,
   },
 }
 

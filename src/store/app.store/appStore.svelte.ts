@@ -7,6 +7,8 @@ const initialState: Store.AppStore = {
   auth: {
     isLoggedIn: false,
     user: null,
+    token: null,
+    permissions: null,
   },
 }
 export const appStore = $state(initialState)

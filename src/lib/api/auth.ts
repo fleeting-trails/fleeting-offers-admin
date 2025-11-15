@@ -9,6 +9,7 @@ interface TokenValidationData {
   userId: string
   role: string
   device: string
+  permissions?: Record<string, any>
   user: {
     id: string
     fullName: string
@@ -57,10 +58,16 @@ export function removeAuthToken(): void {
 }
 
 // Store management utilities (user data and auth state in store)
-export function setAuthState(user: any): void {
+export function setAuthState(
+  user: any,
+  token?: string | null,
+  permissions?: Record<string, any> | null,
+): void {
   appStore.auth = {
     isLoggedIn: true,
     user: user,
+    token: token ?? appStore.auth.token ?? null,
+    permissions: permissions ?? appStore.auth.permissions ?? null,
   }
 }
 
@@ -68,6 +75,8 @@ export function clearAuthState(): void {
   appStore.auth = {
     isLoggedIn: false,
     user: null,
+    token: null,
+    permissions: null,
   }
 }
 
@@ -117,8 +126,15 @@ export async function initializeAuthState(): Promise<void> {
       const response = await validateToken()
 
       if (response.success && response.data?.isValid && response.data?.user) {
-        // Token is valid - set user data
-        setAuthState(response.data.user)
+        // Token is valid - token and set user + permissions
+        if (response.data.token) {
+          storeAuthToken(response.data.token)
+        }
+        setAuthState(
+          response.data.user,
+          response.data.token ?? null,
+          response.data.permissions ?? null,
+        )
       } else {
         // Token validation failed - clear auth
         removeAuthToken()
