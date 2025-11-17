@@ -20,6 +20,11 @@
     User,
     UserUpdateData,
   } from '$lib/types/user'
+  import RoleAuthWrapper from '$lib/components/RoleAuthWrapper/RoleAuthWrapper.svelte'
+  import type { ModuleType } from '$lib/types/roles'
+
+  // Props
+  let { module }: { module: ModuleType } = $props()
 
   // State
   let isEditModalOpen = $state(false)
@@ -182,53 +187,64 @@
         </p>
       </div>
       <div class="flex gap-3">
-        <ButtonGradient onclick={handleCreateNew}>
-          <div class="flex items-center gap-2 whitespace-nowrap">
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            <span>Create User</span>
-          </div>
-        </ButtonGradient>
+        <RoleAuthWrapper {module} type="CREATE">
+          <ButtonGradient onclick={handleCreateNew}>
+            <div class="flex items-center gap-2 whitespace-nowrap">
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <span>Create User</span>
+            </div>
+          </ButtonGradient>
+        </RoleAuthWrapper>
       </div>
     </div>
   </div>
 
   <!-- Table -->
-  <UserTable
-    {users}
-    {loading}
-    onView={handleView}
-    onEdit={handleEdit}
-    onDelete={handleDelete}
-  />
+  <RoleAuthWrapper {module} type="LIST">
+    <UserTable
+      {users}
+      {loading}
+      {module}
+      onView={handleView}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
+    />
+  </RoleAuthWrapper>
 </div>
 
 <!-- Modals -->
-<ViewUserModal bind:isOpen={isViewModalOpen} user={viewingUser} />
+<RoleAuthWrapper {module} type="DETAILS">
+  <ViewUserModal bind:isOpen={isViewModalOpen} user={viewingUser} />
+</RoleAuthWrapper>
 
-<EditUserModal
-  bind:isOpen={isEditModalOpen}
-  user={editingUser}
-  onSubmit={handleEditSubmit}
-  loading={submitLoading}
-/>
+<RoleAuthWrapper {module} type="UPDATE">
+  <EditUserModal
+    bind:isOpen={isEditModalOpen}
+    user={editingUser}
+    onSubmit={handleEditSubmit}
+    loading={submitLoading}
+  />
+</RoleAuthWrapper>
 
-<DeleteConfirmationModal
-  bind:isOpen={isDeleteModalOpen}
-  title="Delete User"
-  message="Are you sure you want to delete this user? This action cannot be undone."
-  onConfirm={handleDeleteConfirm}
-  onCancel={cancelDelete}
-  loading={submitLoading}
-/>
+<RoleAuthWrapper {module} type="DELETE">
+  <DeleteConfirmationModal
+    bind:isOpen={isDeleteModalOpen}
+    title="Delete User"
+    message="Are you sure you want to delete this user? This action cannot be undone."
+    onConfirm={handleDeleteConfirm}
+    onCancel={cancelDelete}
+    loading={submitLoading}
+  />
+</RoleAuthWrapper>
