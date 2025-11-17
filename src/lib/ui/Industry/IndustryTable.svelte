@@ -3,11 +3,14 @@
   import ButtonPrimary from '$lib/components/Button/ButtonPrimary.svelte'
   import type { TableColumn, SortDirection } from '$lib/components/Table/types'
   import type { IndustryDisplay } from '$lib/types/industry'
+  import type { ModuleType } from '$lib/types/roles'
+  import { appStore } from '../../../store/app.store/appStore.svelte'
 
   // Props
   let {
     industries = [],
     loading = false,
+    module,
     totalItems = 0,
     currentPage = 1,
     pageSize = 10,
@@ -19,6 +22,7 @@
   }: {
     industries: IndustryDisplay[]
     loading?: boolean
+    module: ModuleType
     totalItems?: number
     currentPage?: number
     pageSize?: number
@@ -79,6 +83,8 @@
   const actions = [
     {
       label: 'View',
+      module: module,
+      type: 'DETAILS',
       onClick: (row: IndustryDisplay) => onView?.(row.id),
       class:
         'bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30',
@@ -86,18 +92,44 @@
     },
     {
       label: 'Edit',
+      module: module,
+      type: 'UPDATE',
       onClick: (row: IndustryDisplay) => onEdit(row.id),
       class:
         'bg-primary/10 hover:bg-primary/20 dark:bg-primary-dark/10 dark:hover:bg-primary-dark/20 text-primary dark:text-primary-dark',
     },
     {
       label: 'Delete',
+      module: module,
+      type: 'DELETE',
       onClick: (row: IndustryDisplay) => onDelete?.(row.id),
       class:
         'bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30',
       condition: () => !!onDelete,
     },
   ]
+
+  // Permission-based action filtering
+  const allowedActions = $derived(() => {
+    const permissions = appStore.auth.permissions
+
+    if (!permissions) return []
+
+    return actions.filter((action) => {
+      // Check if the action has its own condition first
+      if (action.condition && !action.condition()) {
+        return false
+      }
+
+      // Check if module exists in permissions
+      if (!permissions[action.module]) {
+        return false
+      }
+
+      // Check if the specific type exists under the module
+      return permissions[action.module][action.type] === true
+    })
+  })
 
   // Filtered data (for search only, pagination is server-side)
   const filteredIndustries = $derived(() => {
@@ -164,7 +196,7 @@
   <DataTable
     data={filteredIndustries()}
     {columns}
-    {actions}
+    actions={allowedActions()}
     {loading}
     {currentPage}
     {pageSize}

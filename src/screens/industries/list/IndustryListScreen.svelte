@@ -14,6 +14,11 @@
     fetchIndustryById,
   } from '$lib/api/industry'
   import type { IndustryDisplay, Industry } from '$lib/types/industry'
+  import RoleAuthWrapper from '$lib/components/RoleAuthWrapper/RoleAuthWrapper.svelte'
+  import type { ModuleType } from '$lib/types/roles'
+
+  // Props
+  let { module }: { module: ModuleType } = $props()
 
   // State
   let isEditModalOpen = $state(false)
@@ -194,61 +199,72 @@
         </p>
       </div>
       <div class="flex gap-3">
-        <ButtonGradient onclick={handleCreateNew}>
-          <div class="flex items-center gap-2 whitespace-nowrap">
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            <span>Create Industry</span>
-          </div>
-        </ButtonGradient>
+        <RoleAuthWrapper {module} type="CREATE">
+          <ButtonGradient onclick={handleCreateNew}>
+            <div class="flex items-center gap-2 whitespace-nowrap">
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <span>Create Industry</span>
+            </div>
+          </ButtonGradient>
+        </RoleAuthWrapper>
       </div>
     </div>
   </div>
 
   <!-- Table -->
-  <IndustryTable
-    {industries}
-    {loading}
-    {totalItems}
-    {currentPage}
-    {pageSize}
-    onView={handleView}
-    onEdit={handleEdit}
-    onDelete={handleDelete}
-    onPageChange={handlePageChange}
-  />
+  <RoleAuthWrapper {module} type="LIST">
+    <IndustryTable
+      {industries}
+      {loading}
+      {module}
+      {totalItems}
+      {currentPage}
+      {pageSize}
+      onView={handleView}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
+      onPageChange={handlePageChange}
+    />
+  </RoleAuthWrapper>
 </div>
 
 <!-- Modals -->
-<ViewIndustryModal
-  bind:isOpen={isViewModalOpen}
-  industry={viewingIndustry}
-  loading={viewLoading}
-/>
+<RoleAuthWrapper {module} type="DETAILS">
+  <ViewIndustryModal
+    bind:isOpen={isViewModalOpen}
+    industry={viewingIndustry}
+    loading={viewLoading}
+  />
+</RoleAuthWrapper>
 
-<EditIndustryModal
-  bind:isOpen={isEditModalOpen}
-  industry={editingIndustry}
-  onSubmit={handleEditSubmit}
-  loading={submitLoading}
-/>
+<RoleAuthWrapper {module} type="UPDATE">
+  <EditIndustryModal
+    bind:isOpen={isEditModalOpen}
+    industry={editingIndustry}
+    onSubmit={handleEditSubmit}
+    loading={submitLoading}
+  />
+</RoleAuthWrapper>
 
-<DeleteConfirmationModal
-  bind:isOpen={isDeleteModalOpen}
-  title="Delete Industry"
-  message="Are you sure you want to delete this industry? This action cannot be undone."
-  onConfirm={confirmDelete}
-  onCancel={cancelDelete}
-  loading={submitLoading}
-/>
+<RoleAuthWrapper {module} type="DELETE">
+  <DeleteConfirmationModal
+    bind:isOpen={isDeleteModalOpen}
+    title="Delete Industry"
+    message="Are you sure you want to delete this industry? This action cannot be undone."
+    onConfirm={confirmDelete}
+    onCancel={cancelDelete}
+    loading={submitLoading}
+  />
+</RoleAuthWrapper>

@@ -2,4 +2,4 @@
   import IndustryListScreen from '../../../../screens/industries/list/IndustryListScreen.svelte'
 </script>
 
-<IndustryListScreen />
+<IndustryListScreen module="ADVERTISE_INDUSTRY" />
