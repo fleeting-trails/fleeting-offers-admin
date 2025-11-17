@@ -1,12 +1,13 @@
 <script lang="ts">
   import { appStore } from '../../../store/app.store/appStore.svelte'
+  import { type ModuleType } from '$lib/types/roles'
 
   let {
     module,
     type,
     children,
   }: {
-    module: string
+    module: ModuleType
     type: string
     children: any
   } = $props()

@@ -2,4 +2,4 @@
   import CategoryListScreen from '../../../../screens/categories/list/CategoryListScreen.svelte'
 </script>
 
-<CategoryListScreen />
+<CategoryListScreen module="ADVERTISE_CATEGORY" />

@@ -19,6 +19,11 @@
     CategoryListResponse,
     Category,
   } from '$lib/types/category'
+  import RoleAuthWrapper from '$lib/components/RoleAuthWrapper/RoleAuthWrapper.svelte'
+  import type { ModuleType } from '$lib/types/roles'
+
+  // Props
+  let { module }: { module: ModuleType } = $props()
 
   // State
   let isEditModalOpen = $state(false)
@@ -173,53 +178,64 @@
         </p>
       </div>
       <div class="flex gap-3">
-        <ButtonGradient onclick={handleCreateNew}>
-          <div class="flex items-center gap-2 whitespace-nowrap">
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            <span>Create Category</span>
-          </div>
-        </ButtonGradient>
+        <RoleAuthWrapper {module} type="CREATE">
+          <ButtonGradient onclick={handleCreateNew}>
+            <div class="flex items-center gap-2 whitespace-nowrap">
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <span>Create Category</span>
+            </div>
+          </ButtonGradient>
+        </RoleAuthWrapper>
       </div>
     </div>
   </div>
 
   <!-- Table -->
-  <CategoryTable
-    {categories}
-    {loading}
-    onView={handleView}
-    onEdit={handleEdit}
-    onDelete={handleDelete}
-  />
+  <RoleAuthWrapper {module} type="LIST">
+    <CategoryTable
+      {categories}
+      {loading}
+      {module}
+      onView={handleView}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
+    />
+  </RoleAuthWrapper>
 </div>
 
 <!-- Modals -->
-<ViewCategoryModal bind:isOpen={isViewModalOpen} category={viewingCategory} />
+<RoleAuthWrapper {module} type="DETAILS">
+  <ViewCategoryModal bind:isOpen={isViewModalOpen} category={viewingCategory} />
+</RoleAuthWrapper>
 
-<EditCategoryModal
-  bind:isOpen={isEditModalOpen}
-  category={editingCategory}
-  onSubmit={handleEditSubmit}
-  loading={submitLoading}
-/>
+<RoleAuthWrapper {module} type="UPDATE">
+  <EditCategoryModal
+    bind:isOpen={isEditModalOpen}
+    category={editingCategory}
+    onSubmit={handleEditSubmit}
+    loading={submitLoading}
+  />
+</RoleAuthWrapper>
 
-<DeleteConfirmationModal
-  bind:isOpen={isDeleteModalOpen}
-  title="Delete Category"
-  message="Are you sure you want to delete this category? This action cannot be undone."
-  onConfirm={handleDeleteConfirm}
-  onCancel={cancelDelete}
-  loading={submitLoading}
-/>
+<RoleAuthWrapper {module} type="DELETE">
+  <DeleteConfirmationModal
+    bind:isOpen={isDeleteModalOpen}
+    title="Delete Category"
+    message="Are you sure you want to delete this category? This action cannot be undone."
+    onConfirm={handleDeleteConfirm}
+    onCancel={cancelDelete}
+    loading={submitLoading}
+  />
+</RoleAuthWrapper>

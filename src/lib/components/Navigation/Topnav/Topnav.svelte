@@ -6,13 +6,54 @@
   import Text from '$lib/ui/typography/Text/Text.svelte'
   import { theme } from '../../../../config/theme/theme'
   import { toggleTheme } from '../../../../core/app/app.service'
-  import { getUserData } from '$lib/api/auth'
+  import { getUserData, performLogout } from '$lib/api/auth'
+  import { goto } from '$app/navigation'
+  import { onMount } from 'svelte'
 
   const handleToggleTheme = () => toggleTheme()
 
-  // Get user data
+  // User data
   const userData = getUserData()
   const userName = userData?.fullName || 'User'
+
+  // Profile dropdown state
+  let showProfileDropdown = $state(false)
+  let profileDropdownRef: HTMLDivElement
+
+  // Profile dropdown handlers
+  const toggleProfileDropdown = () => {
+    showProfileDropdown = !showProfileDropdown
+  }
+
+  const handleProfileClick = () => {
+    showProfileDropdown = false
+    goto('/admin/profile')
+  }
+
+  const handleLogout = async () => {
+    showProfileDropdown = false
+    try {
+      await performLogout()
+      goto('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
+  // Close dropdown when clicking outside
+  onMount(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileDropdownRef &&
+        !profileDropdownRef.contains(event.target as Node)
+      ) {
+        showProfileDropdown = false
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  })
 </script>
 
 <div
@@ -65,9 +106,65 @@
       <IconButton size="sm" colorVariant="pure">
         <NotificationIcon scale={0.8} />
       </IconButton>
-      <IconButton size="sm" colorVariant="pure">
-        <ProfileIcon scale={0.8} />
-      </IconButton>
+
+      <!-- Profile dropdown -->
+      <div class="relative" bind:this={profileDropdownRef}>
+        <div onclick={toggleProfileDropdown} class="cursor-pointer">
+          <IconButton size="sm" colorVariant="pure">
+            <ProfileIcon scale={0.8} />
+          </IconButton>
+        </div>
+
+        {#if showProfileDropdown}
+          <div
+            class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+          >
+            <div class="py-1">
+              <button
+                onclick={handleProfileClick}
+                class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <svg
+                  class="w-4 h-4 mr-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                Profile
+              </button>
+
+              <hr class="border-gray-200 dark:border-gray-600" />
+
+              <button
+                onclick={handleLogout}
+                class="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                <svg
+                  class="w-4 h-4 mr-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Logout
+              </button>
+            </div>
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
 </div>
