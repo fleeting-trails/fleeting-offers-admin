@@ -19,9 +19,33 @@
     collapseSidenav,
   } from '../../../../core/app/app.service'
   import SidenavSubmenuPopup from './internal/SidenavSubmenuPopup.svelte'
-  let navItems = $state(initializeNavTreeState(navTree))
+  
+  // Filter nav tree based on permissions
+  const getFilteredNavTree = (navTree: Core.NavTree, permissions: Record<string, any> | null | undefined) => {
+    return navTree.map(section => ({
+      ...section,
+      module: section.module.filter(module => {
+        // Show module if it doesn't have permissionLabel
+        if (!module.permissionLabel) {
+          return true
+        }
+        
+        // Show module if user has the required permission
+        return permissions && permissions.hasOwnProperty(module.permissionLabel)
+      })
+    })).filter(section => section.module.length > 0) // Remove empty sections
+  }
+  
+  let filteredNavTree = $derived(getFilteredNavTree(navTree, appStore.auth.permissions))
+  let navItems = $state(initializeNavTreeState(filteredNavTree))
   let sidenavOpenState = $derived(appStore.sidenavOpenState)
   let openedSubmenuPopup: SidenavModule | null = $state(null)
+
+  // Update navItems when permissions change
+  $effect(() => {
+    const newFilteredTree = getFilteredNavTree(navTree, appStore.auth.permissions)
+    navItems = initializeNavTreeState(newFilteredTree)
+  })
 
   const handleNavItemSelect = (e: CustomEvent<SidenavModule>) => {
     navItems = onNavItemSelect(navItems, e.detail)

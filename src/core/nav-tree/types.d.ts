@@ -1,28 +1,34 @@
-namespace Core {
-  type NavSubmodule = {
-    id: string;
-    label: string;
-    description: string;
-    tags: string[];
-  };
+import type { ModuleType } from '$lib/types/roles'
 
-  type NavModule = {
-    id: string;
-    label: string;
-    icon: ComponentType;
-    description: string;
-    tags: string[];
-    submodule: NavSubmodule[];
-  };
+declare global {
+  namespace Core {
+    export type NavSubmodule = {
+      id: string
+      label: string
+      description: string
+      tags: string[]
+    }
 
-  type NavSection = {
-    id: string;
-    label: string;
-    description: string;
-    tags: string[];
-    module: NavModule[];
-  };
+    export type NavModule = {
+      id: string
+      label: string
+      icon: ComponentType
+      description: string
+      tags: string[]
+      permissionLabel?: ModuleType
+      submodule: NavSubmodule[]
+    }
 
-  type NavTree = NavSection[];
+    export type NavSection = {
+      id: string
+      label: string
+      description: string
+      tags: string[]
+      module: NavModule[]
+    }
 
+    export type NavTree = NavSection[]
+  }
 }
+
+export {}

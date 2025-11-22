@@ -20,6 +20,7 @@ const navTree: Core.NavTree = [
         icon: DashboardIcon,
         description: 'View analytics dashboard',
         tags: ['metrics'],
+        // permissionLabel: 'AUTH',
         submodule: [
           {
             id: 'analytics.dashboard.view',
@@ -43,6 +44,7 @@ const navTree: Core.NavTree = [
         icon: DashboardIcon,
         description: 'Manage user accounts',
         tags: ['users', 'accounts'],
+        permissionLabel: 'USER',
         submodule: [
           {
             id: 'account.users.list',
@@ -72,6 +74,7 @@ const navTree: Core.NavTree = [
         icon: AdvertiseAdIcon,
         description: 'Manage advertisements',
         tags: ['advertisements', 'ads'],
+        permissionLabel: 'ADVERTISE',
         submodule: [
           {
             id: 'advertise.advertisements.all',
@@ -93,6 +96,7 @@ const navTree: Core.NavTree = [
         icon: AdvertiseCategoryIcon,
         description: 'Manage advertise categories',
         tags: ['category', 'advertise-categories'],
+        permissionLabel: 'ADVERTISE_CATEGORY',
         submodule: [
           {
             id: 'advertise.categories.list',
@@ -114,6 +118,7 @@ const navTree: Core.NavTree = [
         icon: AdvertiseIndustryIcon,
         description: 'Classify advertisements by industry',
         tags: ['industry'],
+        permissionLabel: 'ADVERTISE_INDUSTRY',
         submodule: [
           {
             id: 'advertise.industries.list',
@@ -135,6 +140,7 @@ const navTree: Core.NavTree = [
         icon: AdvertiseTagIcon,
         description: 'Manage ad tags and keywords',
         tags: ['tags', 'keywords'],
+        // permissionLabel: 'ADVERTISE',
         submodule: [
           {
             id: 'advertise.tags.create',
@@ -156,6 +162,7 @@ const navTree: Core.NavTree = [
         icon: AdvertiseDealIcon,
         description: 'Configure types of deals and discounts',
         tags: ['deals', 'types'],
+        // permissionLabel: 'ADVERTISE',
         submodule: [
           {
             id: 'advertise.deals.create',
@@ -177,6 +184,7 @@ const navTree: Core.NavTree = [
         icon: AdvertiseOwnerIcon,
         description: 'Assign ownership and contributors to ads',
         tags: ['owners', 'contributors'],
+        // permissionLabel: 'ADVERTISE',
         submodule: [
           {
             id: 'advertise.owners.create',
@@ -206,6 +214,7 @@ const navTree: Core.NavTree = [
         icon: CampaigAdsIcon,
         description: 'Manage ads under a campaign',
         tags: ['campaign', 'mapping'],
+        // permissionLabel: 'CAMPAIGN',
         submodule: [
           {
             id: 'campaign.campaignAds.create',

@@ -56,7 +56,7 @@
 
     <!-- Action buttons -->
     <div class="flex flex-col sm:flex-row gap-3 justify-center">
-      <ButtonPrimary on:click={handleGoHome} class="min-w-[120px]">
+      <ButtonPrimary onclick={handleGoHome} class="min-w-[120px]">
         Go Home
       </ButtonPrimary>
     </div>
