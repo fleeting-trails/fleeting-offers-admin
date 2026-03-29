@@ -22,6 +22,9 @@
   const handleMenuHover = (module: SidenavModule) => {
     dispatch('menuhover', module)
   }
+  const handleSubmoduleSelect = (submodule: SidenavModule['submodule'][0]) => {
+    dispatch('submoduleselect', submodule)
+  }
 
   let sidenavOpenState = $derived(appStore.sidenavOpenState)
 </script>
@@ -65,18 +68,24 @@
         module.submodule.length}px;"
     >
       {#each module.submodule as item (item.id)}
-        <a class="cursor-pointer pl-6 block group hover">
+        <button
+          type="button"
+          class="cursor-pointer pl-6 w-full text-left group hover:bg-transparent border-none bg-transparent p-0"
+          onclick={() => handleSubmoduleSelect(item)}
+        >
           <li
             class="relative before:absolute before:left-[-12px] before:-top-4 before:w-3 before:h-9 before:border-l before:border-b before:border-gray-300 before:rounded-bl-md text-xs text-text-light"
           >
             <Text
               variant="span"
-              class="group-hover:text-text-primary group-hover:bg-background-pure/50 rounded-lg transition ease-in-out duration-300 py-[9px] px-2 block"
+              class="group-hover:text-text-primary group-hover:bg-background-pure/50 {item.selected
+                ? 'text-text-primary bg-background-pure'
+                : ''} rounded-lg transition ease-in-out duration-300 py-[9px] px-2 block"
             >
               {item.label}
             </Text>
           </li>
-        </a>
+        </button>
       {/each}
     </ul>
   {/if}

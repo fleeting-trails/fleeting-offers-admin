@@ -1,2 +1,22 @@
-<h1>Welcome to SvelteKit</h1>
-<p class="text-red-200">Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script>
+  import { goto } from '$app/navigation'
+  import { onMount } from 'svelte'
+  import { isLoggedIn } from '$lib/api/auth'
+
+  onMount(() => {
+    // Redirect based on auth status
+    if (isLoggedIn()) {
+      goto('/admin', { replaceState: true })
+    } else {
+      goto('/login', { replaceState: true })
+    }
+  })
+</script>
+
+<div class="p-6 h-full flex items-center justify-center">
+  <div class="text-center">
+    <p class="text-text-secondary dark:text-text-secondary-dark">
+      Redirecting...
+    </p>
+  </div>
+</div>

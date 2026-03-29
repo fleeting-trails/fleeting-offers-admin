@@ -1,11 +1,17 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
+  import { page } from '$app/stores'
   import CollapseIcon from '$lib/icons/collapseIcon.svelte'
   import ShortcutIcon from '$lib/icons/ShortcutIcon.svelte'
   import { theme } from '../../../../config/theme/theme'
   import SidenavItems from './internal/SidenavItems.svelte'
   import navTree from '../../../../core/nav-tree/nav-tree'
   import HistoryIcon from '$lib/icons/HistoryIcon.svelte'
-  import { initializeNavTreeState, onNavItemSelect } from './Sidenav.service'
+  import {
+    initializeNavTreeState,
+    onNavItemSelect,
+    onNavSubmoduleSelect,
+  } from './Sidenav.service'
   import type { SidenavModule } from './Sidenav.service'
   import { appStore } from '../../../../store/app.store/appStore.svelte'
   import {
@@ -13,12 +19,77 @@
     collapseSidenav,
   } from '../../../../core/app/app.service'
   import SidenavSubmenuPopup from './internal/SidenavSubmenuPopup.svelte'
-  let navItems = $state(initializeNavTreeState(navTree))
+
+  // Filter nav tree based on permissions
+  const getFilteredNavTree = (
+    navTree: Core.NavTree,
+    permissions: Record<string, any> | null | undefined,
+  ) => {
+    return navTree
+      .map((section) => ({
+        ...section,
+        module: section.module.filter((module) => {
+          // Show module if it doesn't have permissionLabel
+          if (!module.permissionLabel) {
+            return true
+          }
+
+          // Show module if user has the required permission
+          return (
+            permissions && permissions.hasOwnProperty(module.permissionLabel)
+          )
+        }),
+      }))
+      .filter((section) => section.module.length > 0) // Remove empty sections
+  }
+
+  let filteredNavTree = $derived(
+    getFilteredNavTree(navTree, appStore.auth.permissions),
+  )
+  let navItems = $state(initializeNavTreeState(filteredNavTree))
   let sidenavOpenState = $derived(appStore.sidenavOpenState)
   let openedSubmenuPopup: SidenavModule | null = $state(null)
 
+  // Update navItems when permissions change
+  $effect(() => {
+    const newFilteredTree = getFilteredNavTree(
+      navTree,
+      appStore.auth.permissions,
+    )
+    navItems = initializeNavTreeState(newFilteredTree)
+  })
+
   const handleNavItemSelect = (e: CustomEvent<SidenavModule>) => {
     navItems = onNavItemSelect(navItems, e.detail)
+  }
+
+  const handleSubmoduleSelect = (
+    e: CustomEvent<SidenavModule['submodule'][0]>,
+  ) => {
+    console.log('Submodule selected in parent:', e.detail)
+    navItems = onNavSubmoduleSelect(navItems, e.detail)
+
+    // Navigate to submodule page
+    const submoduleId = e.detail.id
+    let targetUrl = ''
+
+    // Convert nav tree IDs to path-based routes
+    const parts = submoduleId.split('.')
+    const moduleId = parts[parts.length - 2] // Second to last part (module)
+    const submodulePage = parts[parts.length - 1] // Last part (submodule)
+
+    // Map submodule pages to appropriate route names
+    let routePage = submodulePage
+    if (submodulePage === 'all') {
+      routePage = 'list'
+    }
+
+    targetUrl = `/admin/${moduleId}/${routePage}`
+
+    // Only navigate if we're not already on this URL
+    if ($page.url.pathname !== targetUrl.split('?')[0]) {
+      goto(targetUrl)
+    }
   }
 
   const handleCollapseSelect = () => {
@@ -106,6 +177,7 @@
           <SidenavItems
             on:menuhover={handleNavItemHover}
             on:menuclick={handleNavItemSelect}
+            on:submoduleselect={handleSubmoduleSelect}
             {module}
             badgeCount={0}
           />

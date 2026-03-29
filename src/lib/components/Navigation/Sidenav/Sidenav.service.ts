@@ -1,20 +1,22 @@
 export type SidenavSubmodule = Core.NavSubmodule & {
-  selected: boolean;
-};
+  selected: boolean
+}
 
 export type SidenavModule = Core.NavModule & {
-  collapsed: boolean;
-  selected: boolean;
-  submodule: SidenavSubmodule[];
-};
+  collapsed: boolean
+  selected: boolean
+  submodule: SidenavSubmodule[]
+}
 
 export type SidenavSection = Core.NavSection & {
-  collapsed: boolean;
-  selected: boolean;
-  module: SidenavModule[];
-};
+  collapsed: boolean
+  selected: boolean
+  module: SidenavModule[]
+}
 
-export const initializeNavTreeState = (tree: Core.NavTree): SidenavSection[] => {
+export const initializeNavTreeState = (
+  tree: Core.NavTree,
+): SidenavSection[] => {
   return tree.map((section) => ({
     ...section,
     collapsed: false,
@@ -25,20 +27,20 @@ export const initializeNavTreeState = (tree: Core.NavTree): SidenavSection[] => 
       selected: false,
       submodule: mod.submodule.map((sub) => ({
         ...sub,
-        selected: false
-      }))
-    }))
-  }));
+        selected: false,
+      })),
+    })),
+  }))
 }
 
 export const onNavItemSelect = (
   navTree: SidenavSection[],
-  selectedModule: SidenavModule
+  selectedModule: SidenavModule,
 ): SidenavSection[] => {
   return navTree.map((section) => ({
     ...section,
     module: section.module.map((mod): SidenavModule => {
-      const isSelected = mod.id === selectedModule.id;
+      const isSelected = mod.id === selectedModule.id
 
       return {
         // Copy over Core.NavModule props
@@ -50,19 +52,51 @@ export const onNavItemSelect = (
 
         // Add SidenavModule-specific props
         collapsed: false,
-        selected: isSelected ? !selectedModule.selected : mod.id === selectedModule.id,
-        submodule: mod.submodule.map((sub): SidenavSubmodule => ({
-          id: sub.id,
-          label: sub.label,
-          description: sub.description,
-          tags: sub.tags,
+        selected: isSelected
+          ? !selectedModule.selected
+          : mod.id === selectedModule.id,
+        submodule: mod.submodule.map(
+          (sub): SidenavSubmodule => ({
+            id: sub.id,
+            label: sub.label,
+            description: sub.description,
+            tags: sub.tags,
 
-          // Add SidenavSubmodule-specific props
-          selected: false,
-        })),
-      };
+            // Add SidenavSubmodule-specific props
+            selected: (sub as SidenavSubmodule).selected || false,
+          }),
+        ),
+      }
     }),
-  }));
-};
+  }))
+}
 
+export const onNavSubmoduleSelect = (
+  navTree: SidenavSection[],
+  selectedSubmodule: SidenavSubmodule,
+): SidenavSection[] => {
+  return navTree.map((section) => ({
+    ...section,
+    module: section.module.map((mod): SidenavModule => {
+      const sidenavMod = mod as SidenavModule
+      return {
+        // Copy over Core.NavModule props
+        id: sidenavMod.id,
+        label: sidenavMod.label,
+        icon: sidenavMod.icon,
+        description: sidenavMod.description,
+        tags: sidenavMod.tags,
 
+        // Add SidenavModule-specific props
+        collapsed: sidenavMod.collapsed,
+        selected: sidenavMod.selected,
+        submodule: sidenavMod.submodule.map((sub): SidenavSubmodule => {
+          return {
+            ...sub,
+            selected: sub.id === selectedSubmodule.id,
+          }
+        }),
+      }
+    }),
+  }))
+}

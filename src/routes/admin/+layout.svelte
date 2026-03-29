@@ -1,11 +1,32 @@
 <script lang="ts">
   let { children } = $props()
+  import { goto } from '$app/navigation'
+  import { browser } from '$app/environment'
+  import { onMount } from 'svelte'
+  import { isLoggedIn } from '$lib/api/auth'
   import Sidenav from '$lib/components/Navigation/Sidenav/Sidenav.svelte'
   import Topnav from '$lib/components/Navigation/Topnav/Topnav.svelte'
   import ArrowRightIcon from '$lib/icons/ArrowRightIcon.svelte'
-  import IconButton from '$lib/ui/Button/IconButton.svelte'
+  import IconButton from '$lib/components/Button/IconButton.svelte'
   import { expandSidenav } from '../../core/app/app.service'
   import { appStore } from '../../store/app.store/appStore.svelte'
+
+  // Auth guard
+  let authChecked = $state(false)
+  let isAuthenticated = $state(false)
+
+  onMount(() => {
+    if (browser) {
+      isAuthenticated = isLoggedIn()
+
+      if (!isAuthenticated) {
+        goto('/login')
+        return
+      }
+
+      authChecked = true
+    }
+  })
   // States
   let containerOffset = 12
   let sidenavOpenState = $derived(appStore.sidenavOpenState)
@@ -30,38 +51,48 @@
   const handleExpandClick = () => expandSidenav()
 </script>
 
-<div
-  class="bg-gradient-to-r from-primary dark:from-primary-dark to-accent dark:to-accent-dark w-full h-screen"
-  style="padding: {containerOffset}px"
->
+{#if authChecked && isAuthenticated}
   <div
-    class="flex rounded bg-gradient-to-b from-background-toned-1 dark:from-background-toned-1-dark to-background-toned-0 dark:to-background-toned-0-dark dark:bg-background-dark h-full rounded overflow-hidden transition-all ease-in-out duration-300"
+    class="bg-gradient-to-r from-primary dark:from-primary-dark to-accent dark:to-accent-dark w-full h-screen"
+    style="padding: {containerOffset}px"
   >
-    <!-- Sidenavigation -->
     <div
-      class="relative h-full transition-all ease-in-out duration-300"
-      style={`width: ${navWidth}px`}
+      class="flex rounded bg-gradient-to-b from-background-toned-1 dark:from-background-toned-1-dark to-background-toned-0 dark:to-background-toned-0-dark dark:bg-background-dark h-full rounded overflow-hidden transition-all ease-in-out duration-300"
     >
-      {#if sidenavOpenState === 'collapsed'}
-        <div
-          class="absolute top-[20px] -right-[-5px] h-[10px] w-[10px] cursor-pointer z-2"
-          onclick={handleExpandClick}
-        >
-          <IconButton size="sm" colorVariant="primary">
-            <ArrowRightIcon scale={0.6} color="white" />
-          </IconButton>
-        </div>
-      {/if}
-      <Sidenav />
-    </div>
+      <!-- Sidenavigation -->
+      <div
+        class="relative h-full transition-all ease-in-out duration-300 flex-shrink-0"
+        style={`width: ${navWidth}px`}
+      >
+        {#if sidenavOpenState === 'collapsed'}
+          <button
+            type="button"
+            class="absolute top-[20px] -right-[-5px] h-[10px] w-[10px] cursor-pointer z-2 border-none bg-transparent p-0"
+            onclick={handleExpandClick}
+          >
+            <IconButton size="sm" colorVariant="primary">
+              <ArrowRightIcon scale={0.6} color="white" />
+            </IconButton>
+          </button>
+        {/if}
+        <Sidenav />
+      </div>
 
-    <!-- Right Content -->
-    <div class="flex-1 flex flex-col h-full">
-      <!-- Top Navigation -->
-      <Topnav />
-      <div class="flex-1">
-        {@render children()}
+      <!-- Right Content -->
+      <div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        <!-- Top Navigation -->
+        <Topnav />
+        <div class="flex-1 overflow-y-auto p-4 md:p-6">
+          <div class="w-full max-w-full">
+            {@render children()}
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
+{:else if authChecked}
+  <!-- This will only show briefly before redirect -->
+  <div class="flex items-center justify-center h-screen">
+    <p>Redirecting to login...</p>
+  </div>
+{/if}
